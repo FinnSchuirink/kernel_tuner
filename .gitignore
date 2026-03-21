@@ -31,6 +31,8 @@ temp_*.*
 .DS_Store
 .python-version
 .nox
+venv/
+compilation_cache/
 
 ### Visual Studio Code ###
 !.vscode/settings.json

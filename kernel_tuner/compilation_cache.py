@@ -82,7 +82,7 @@ class CompilationCache:
         cache_entry = self._index[key]
         cache_file = cache_entry["filename"]
 
-        binary_path = Path(os.path.join(self._cache_dir, cache_file, ".bin"))
+        binary_path = Path(os.path.join(self._cache_dir, cache_file))
 
         ## Key exists in cache, but file is deleted -> update _index
         if (not os.path.exists(binary_path)):
@@ -142,12 +142,13 @@ class CompilationCache:
         if (os.path.exists(self._index_path)):
             with open(self._index_path) as f:
                 return json.load(f)
+        return {}
     
     def _write_index(self) -> None:
         """Write dictionary to index.json file
         """
         with open(self._index_path, "w") as f:
-            json.dump(self._index, f)
+            json.dump(self._index, f, indent=2)
 
         
         
