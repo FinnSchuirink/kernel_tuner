@@ -120,7 +120,7 @@ class CompilationCache:
         h.update(device.encode())
 
         # Sort flags as compiler flags are associative
-        for flag in sorted(flags):
+        for flag in sorted(flags or []):
             h.update(flag.encode())
 
         # Cretae valid indexing key 
