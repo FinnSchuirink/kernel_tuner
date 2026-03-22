@@ -266,6 +266,9 @@ class DeviceInterface(object):
         :param times: Return the execution time of all iterations.
         :type times: bool
 
+        :param compilation_cache: Instance of a compilation cache, used for saving binaries
+        :type compilation_cache: kernel_tuner.CompilationCache
+
         """
         lang = kernel_source.lang
         self.requires_warmup = True
@@ -628,6 +631,16 @@ class DeviceInterface(object):
         result["benchmark_time"] = last_benchmark_time or 0
 
         return result
+    
+    def _load_binary(self, binary: bytes, instance: KernelInstance) -> object:
+        if (self.lang.upper() == "CUDA"):
+            ##FIXME: Add logic for binary loading
+            logging.debug("Trying to load CUDA binary")
+            return None
+    
+    def _extract_binary(self, func: object) -> bytes:
+        ## FIXME: Add logic for binary extracting
+        return None
 
     def compile_kernel(self, instance, verbose):
         """Compile the kernel for this specific instance."""
@@ -643,9 +656,11 @@ class DeviceInterface(object):
         compiled_binary = self.compilation_cache.get(cache_key)
         if (compiled_binary is not None):
             ## Load the binary 
-            logging.debug("Cache hit, but not implemented yet, recompiling")
-            ##return func
+            logging.debug("Cache hit, loading binary!")
+            func = self._load_binary(binary=compiled_binary, instance=instance)
+            return func
 
+        logging.debug("Cache miss, recompiling binary!")
         # compile kernel_string into device func
         func = None
         try:
@@ -673,9 +688,10 @@ class DeviceInterface(object):
                 print("Error while compiling:", instance.name)
                 raise e
         if func is not None:
+            logging.debug(f"Saving {instance.name} to cache, to avoid recompilation")
             self.compilation_cache.put(
                 key=cache_key,
-                compiled_binary=0, ## FIXME: Extract binary
+                compiled_binary=b"Lorem Ipsum", ## FIXME: Extract binary
                 metadata= {
                     "kernel_name": instance.name,
                     "backend": self.lang,
