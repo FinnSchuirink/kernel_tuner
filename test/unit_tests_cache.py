@@ -32,7 +32,7 @@ def cache():
     return CompilationCache()
 
 @pytest.fixture
-def key_one(cache):
+def key_one():
     return CompilationCache.make_cache_key(
         kernel_string = KERNEL_ONE["kernel_string"],
         backend = KERNEL_ONE["backend"],
@@ -41,7 +41,7 @@ def key_one(cache):
     )
 
 @pytest.fixture
-def key_two(cache):
+def key_two():
     return CompilationCache.make_cache_key(
         kernel_string = KERNEL_TWO["kernel_string"],
         backend = KERNEL_TWO["backend"],

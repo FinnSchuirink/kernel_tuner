@@ -50,7 +50,7 @@ class CompilationCache:
         :param metadata: Meta data about the file, for debugging purposes (backend, device, flags, ...)
         :type metadata: dict
         """
-        cache_filename = key + "bin"
+        cache_filename = key + ".bin"
 
         ## Save binary in cache
         binary_path = Path(os.path.join(self._cache_dir, cache_filename))
@@ -117,7 +117,7 @@ class CompilationCache:
         ## Create the hash by coiverting string into bytes
         h.update(kernel_string.encode())
         h.update(backend.encode())
-        h.update(device.encode())
+        h.update(str(device).encode())
 
         # Sort flags as compiler flags are associative
         for flag in sorted(flags or []):

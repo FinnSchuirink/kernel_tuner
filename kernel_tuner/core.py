@@ -24,6 +24,7 @@ from kernel_tuner.backends.pycuda import PyCudaFunctions
 from kernel_tuner.observers.nvml import NVMLObserver
 from kernel_tuner.observers.observer import ContinuousObserver, OutputObserver, PrologueObserver
 from kernel_tuner.observers.tegra import TegraObserver
+from kernel_tuner.compilation_cache import CompilationCache
 
 try:
     import torch
@@ -358,6 +359,10 @@ class DeviceInterface(object):
         self.units = dev.units
         self.name = dev.name
         self.max_threads = dev.max_threads
+
+        self.compilation_cache = CompilationCache()
+        self.compiler_options = compiler_options or []
+
         if not quiet:
             print("Using: " + self.dev.name)
 
@@ -628,6 +633,19 @@ class DeviceInterface(object):
         """Compile the kernel for this specific instance."""
         logging.debug("compile_kernel " + instance.name)
 
+        cache_key = CompilationCache.make_cache_key(
+            kernel_string=instance.kernel_string,
+            backend=self.lang,
+            device=self.dev.name,
+            flags=self.compiler_options
+        )
+
+        compiled_binary = self.compilation_cache.get(cache_key)
+        if (compiled_binary is not None):
+            ## Load the binary 
+            logging.debug("Cache hit, but not implemented yet, recompiling")
+            ##return func
+
         # compile kernel_string into device func
         func = None
         try:
@@ -654,6 +672,18 @@ class DeviceInterface(object):
                 print("compile_kernel failed due to error: " + error_message)
                 print("Error while compiling:", instance.name)
                 raise e
+        if func is not None:
+            self.compilation_cache.put(
+                key=cache_key,
+                compiled_binary=0, ## FIXME: Extract binary
+                metadata= {
+                    "kernel_name": instance.name,
+                    "backend": self.lang,
+                    "device": self.dev.name,
+                    "params": instance.params,
+                    "compiler_options": list(self.compiler_options)
+                }
+            )
         return func
 
     @staticmethod
