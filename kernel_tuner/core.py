@@ -632,14 +632,28 @@ class DeviceInterface(object):
 
         return result
     
-    def _load_binary(self, binary: bytes, instance: KernelInstance) -> object:
+    def _load_binary(self, binary: bytes, kernel_instance: KernelInstance) -> object:
         if (self.lang.upper() == "CUDA"):
-            ##FIXME: Add logic for binary loading
+            ##FIXME: Add logic for binary loading from cache
             logging.debug("Trying to load CUDA binary")
-            return None
+            import pycuda.driver as p
+            
+            ## Get module from saved binary
+            mod = p.module_from_buffer(binary)
+
+            ## Update the current module
+            self.dev.current_module = mod
+
+            ## Extract function
+            self.dev.func = self.dev.current_module.get_function(kernel_instance.name)
+            return self.dev.func
     
-    def _extract_binary(self, func: object) -> bytes:
-        ## FIXME: Add logic for binary extracting
+    def _extract_binary(self) -> bytes:
+        ## FIXME: Add logic for binary saving to cache
+        binary = self.dev.current_module.get_cubin()
+        if (binary is not None):
+            return binary
+        
         return None
 
     def compile_kernel(self, instance, verbose):
@@ -691,7 +705,7 @@ class DeviceInterface(object):
             logging.debug(f"Saving {instance.name} to cache, to avoid recompilation")
             self.compilation_cache.put(
                 key=cache_key,
-                compiled_binary=b"Lorem Ipsum", ## FIXME: Extract binary
+                compiled_binary=self._extract_binary(),
                 metadata= {
                     "kernel_name": instance.name,
                     "backend": self.lang,
