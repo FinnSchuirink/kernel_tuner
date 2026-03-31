@@ -636,23 +636,64 @@ class DeviceInterface(object):
         if (self.lang.upper() == "CUDA"):
             ##FIXME: Add logic for binary loading from cache
             logging.debug("Trying to load CUDA binary")
-            import pycuda.driver as p
+            import pycuda.driver as drv
             
             ## Get module from saved binary
-            mod = p.module_from_buffer(binary)
+            mod = drv.module_from_buffer(binary)
 
             ## Update the current module
             self.dev.current_module = mod
 
             ## Extract function
-            self.dev.func = self.dev.current_module.get_function(kernel_instance.name)
-            return self.dev.func
+            func = self.dev.current_module.get_function(kernel_instance.name)
+            self.dev.func = func
+            return func
+        elif (self.lang.upper() == "CUPY"):
+            return None
+        elif (self.lang.upper() == "NVCUDA"):
+            return None
+        elif (self.lang.upper() == "OPENCL"):
+            return None
+        elif (self.lang.upper() in ["C", "FORTRAN"]):
+            return None
+        elif (self.lang.upper() == "HIP"):
+            return None
+        elif (self.lang.upper() == "HYPERTUNER"):
+            return None
+        else:
+            logging.warning(f"_load_binary: unsupported backend {self.lang}, returning None")
+            return None
     
-    def _extract_binary(self) -> bytes:
+    def _extract_binary(self) -> bytes | None:
         ## FIXME: Add logic for binary saving to cache
-        binary = self.dev.current_module.get_cubin()
-        if (binary is not None):
-            return binary
+        if (self.lang.upper() == "CUDA"):
+            if not hasattr(self.dev.current_module, "get_cubin"):
+                logging.warning("No attribute get_cubin")
+                return None
+            binary = self.dev.current_module.get_cubin()
+            if binary:
+                return binary
+        
+        elif (self.lang.upper() == "CUPY"):
+            return None
+        elif (self.lang.upper() == "NVCUDA"):
+            return None
+        elif (self.lang.upper() == "OPENCL"):
+            return None
+        elif (self.lang.upper() in ["C", "FORTRAN"]):
+            return None
+        elif (self.lang.upper() == "HIP"):
+            return None
+        elif (self.lang.upper() == "HYPERTUNER"):
+            return None
+        else:
+            logging.warning(f"_load_binary: unsupported backend {self.lang}, returning None")
+            return None
+        
+        logging.warning(f"_extract_binary: unsupported backend {self.lang}, returning None")
+        return None
+        
+
         
         return None
 
@@ -671,7 +712,7 @@ class DeviceInterface(object):
         if (compiled_binary is not None):
             ## Load the binary 
             logging.debug("Cache hit, loading binary!")
-            func = self._load_binary(binary=compiled_binary, instance=instance)
+            func = self._load_binary(binary=compiled_binary, kernel_instance=instance)
             return func
 
         logging.debug("Cache miss, recompiling binary!")
@@ -702,18 +743,21 @@ class DeviceInterface(object):
                 print("Error while compiling:", instance.name)
                 raise e
         if func is not None:
-            logging.debug(f"Saving {instance.name} to cache, to avoid recompilation")
-            self.compilation_cache.put(
-                key=cache_key,
-                compiled_binary=self._extract_binary(),
-                metadata= {
-                    "kernel_name": instance.name,
-                    "backend": self.lang,
-                    "device": self.dev.name,
-                    "params": instance.params,
-                    "compiler_options": list(self.compiler_options)
-                }
-            )
+            binary = self._extract_binary()
+            if (binary is not None):
+                logging.debug(f"Saving {instance.name} to cache, to avoid recompilation")
+                self.compilation_cache.put(
+                    key=cache_key,
+                    compiled_binary=binary,
+                    metadata= {
+                        "kernel_name": instance.name,
+                        "backend": self.lang,
+                        "device": self.dev.name,
+                        "params": instance.params,
+                        "compiler_options": list(self.compiler_options)
+                    }
+                )
+            logging.warning(f"Binary extraction failed for {instance.name}")
         return func
 
     @staticmethod
