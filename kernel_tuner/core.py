@@ -634,32 +634,120 @@ class DeviceInterface(object):
     
     def _load_binary(self, binary: bytes, kernel_instance: KernelInstance) -> object:
         if (self.lang.upper() == "CUDA"):
-            ##FIXME: Add logic for binary loading from cache
             logging.debug("Trying to load CUDA binary")
             import pycuda.driver as drv
-            
-            ## Get module from saved binary
-            mod = drv.module_from_buffer(binary)
+            try:
+                ## Get module from saved binary
+                mod = drv.module_from_buffer(binary)
 
-            ## Update the current module
-            self.dev.current_module = mod
+                ## Update the current module
+                self.dev.current_module = mod
 
-            ## Extract function
-            func = self.dev.current_module.get_function(kernel_instance.name)
-            self.dev.func = func
-            return func
+                ## Extract function
+                func = self.dev.current_module.get_function(kernel_instance.name)
+                self.dev.func = func
+                return func
+            except Exception as e:
+                logging.warning(f"_load_binary (CUDA): {e}")
+                return None
         elif (self.lang.upper() == "CUPY"):
-            return None
+            logging.debug("Trying to load CUPY binary")
+            import cupy as cp
+            import tempfile, os
+            try:    
+                ## Create temporary .cubin file from binary
+                with tempfile.NamedTemporaryFile(suffix=".cubin", delete=False) as f:
+                    f.write(binary)
+                    cubin_file_name = f.name
+
+                ## Extract module from temporary .cubin file
+                module = cp.RawModule(path=cubin_file_name)
+
+                ## Remove temporary .cubin file
+                os.remove(cubin_file_name)
+
+                ## Update current module
+                self.dev.current_module = module
+
+                ## Extract function
+                func = module.get_function(kernel_instance.name)
+                self.dev.func = func
+                return func
+            except Exception as e:
+                logging.warning(f"_load_binary (CUDA): {e}")
+                return None
         elif (self.lang.upper() == "NVCUDA"):
-            return None
+            logging.debug("Trying to load NVCUDA binary")
+            from cuda import cuda as cu
+            try:
+                ## Get module
+                _, module = cu.cuModuleLoadData(binary)
+
+                ## Update current module
+                self.dev.current_module = module
+
+                ## Extract function
+                _, func = cu.cuModuleGetFunction(module, kernel_instance.name.encode())
+                self.dev.func = func
+                return func
+            except Exception as e:
+                logging.warning(f"_load_binary (NVCUDA): {e}")
+                return None
         elif (self.lang.upper() == "OPENCL"):
-            return None
+            logging.debug("Trying to load OPENCL binary")
+            import pyopencl as cl
+            try:
+                ## Create program from binary
+                program = cl.Program(self.dev.ctx, [self.dev.dev], [binary])
+
+                ## Build the program with specified compiler options
+                program.build(options= " ".join(self.compiler_options))
+
+                ## Extract the function
+                func = getattr(program, kernel_instance.name)
+                self.dev.func = func
+                return func
+            except Exception as e:
+                logging.warning(f"_load_binary (OPENCL): {e}")
+                return None
         elif (self.lang.upper() in ["C", "FORTRAN"]):
-            return None
+            logging.debug("Trying to load C, FORTRAN binary")
+            import ctypes, os, tempfile
+            try:
+                ## Write binary to .so file
+                with tempfile.NamedTemporaryFile(suffix=".so", delete=False) as f:
+                        f.write(binary)
+                        so_file_name = f.name
+
+                ## Load shared library
+                lib = ctypes.CDLL(so_file_name)
+
+                ## Remove temporary file
+                os.remove(so_file_name)
+
+                ## Extract the function
+                func = getattr(lib, kernel_instance.name)
+                return func
+            except Exception as e:
+                logging.warning(f"_load_binary ([C, FORTRAN]): {e}")
+                return None
         elif (self.lang.upper() == "HIP"):
-            return None
-        elif (self.lang.upper() == "HYPERTUNER"):
-            return None
+            logging.debug("Trying to load HIP binary")
+            from hip import hip
+            try:
+                ## Load HIP module
+                _, module = hip.hipModuleLoadData(binary)
+
+                ## Update the current module
+                self.dev.current_module = module
+
+                ## Extract the function
+                func = hip.hipModuleGetFunction(module, kernel_instance.name)
+                self.dev.func = func
+                return func
+            except Exception as e:
+                logging.warning(f"_load_binary (HIP): {e}")
+                return None
         else:
             logging.warning(f"_load_binary: unsupported backend {self.lang}, returning None")
             return None
@@ -667,35 +755,48 @@ class DeviceInterface(object):
     def _extract_binary(self) -> bytes | None:
         ## FIXME: Add logic for binary saving to cache
         if (self.lang.upper() == "CUDA"):
-            if not hasattr(self.dev.current_module, "get_cubin"):
-                logging.warning("No attribute get_cubin")
+            try: 
                 return None
-            binary = self.dev.current_module.get_cubin()
-            if binary:
-                return binary
-        
+            except Exception as e:
+                logging.warning(f"_extract_binary (CUDA): {e}")
+                return None
         elif (self.lang.upper() == "CUPY"):
-            return None
+            try:
+                return None
+            except Exception as e:
+                logging.warning(f"_extract_binary (CUDA): {e}")
+                return None
         elif (self.lang.upper() == "NVCUDA"):
-            return None
+            try:
+                return None
+            except Exception as e:
+                logging.warning(f"_extract_binary (NVCUDA): {e}")
+                return None
         elif (self.lang.upper() == "OPENCL"):
-            return None
+            import pyopencl as cl
+            try:
+                binary = self.dev.current_module.get_info(cl.program_info.BINARIES)
+                return binary
+            except Exception as e:
+                logging.warning(f"_extract_binary (OPENCL): {e}")
+                return None
         elif (self.lang.upper() in ["C", "FORTRAN"]):
-            return None
+            try:
+                return None
+            except Exception as e:
+                logging.warning(f"_extract_binary ([C, FORTRAN]): {e}")
+                return None
         elif (self.lang.upper() == "HIP"):
-            return None
-        elif (self.lang.upper() == "HYPERTUNER"):
-            return None
+            try:
+                return None
+            except Exception as e:
+                logging.warning(f"_extract_binary (HIP): {e}")
+                return None
         else:
             logging.warning(f"_load_binary: unsupported backend {self.lang}, returning None")
             return None
         
-        logging.warning(f"_extract_binary: unsupported backend {self.lang}, returning None")
-        return None
-        
-
-        
-        return None
+    
 
     def compile_kernel(self, instance, verbose):
         """Compile the kernel for this specific instance."""
@@ -719,7 +820,7 @@ class DeviceInterface(object):
         # compile kernel_string into device func
         func = None
         try:
-            func = self.dev.compile(instance)
+            func, binary = self.dev.compile(instance)
         except Exception as e:
             # compiles may fail because certain kernel configurations use too
             # much shared memory for example, the desired behavior is to simply
@@ -742,7 +843,7 @@ class DeviceInterface(object):
                 print("compile_kernel failed due to error: " + error_message)
                 print("Error while compiling:", instance.name)
                 raise e
-        if func is not None:
+        if func is not None and binary is not None:
             binary = self._extract_binary()
             if (binary is not None):
                 logging.debug(f"Saving {instance.name} to cache, to avoid recompilation")
@@ -757,7 +858,8 @@ class DeviceInterface(object):
                         "compiler_options": list(self.compiler_options)
                     }
                 )
-            logging.warning(f"Binary extraction failed for {instance.name}")
+            else:
+                logging.warning(f"Binary extraction failed for {instance.name}")
         return func
 
     @staticmethod

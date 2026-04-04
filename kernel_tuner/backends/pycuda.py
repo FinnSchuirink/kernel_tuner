@@ -33,6 +33,10 @@ try:
     from pycuda.compiler import DynamicSourceModule
 except ImportError:
     DynamicSourceModule = None
+try:
+    from pycuda.compiler import compile as cuda_compile
+except ImportError:
+    cuda_compile = None
 
 try:
     import torch
@@ -201,6 +205,7 @@ class PyCudaFunctions(GPUBackend):
         :returns: An CUDA kernel that can be called directly.
         :rtype: pycuda.driver.Function
         """
+
         kernel_string = kernel_instance.kernel_string
         kernel_name = kernel_instance.name
 
@@ -211,7 +216,7 @@ class PyCudaFunctions(GPUBackend):
             if self.compiler_options:
                 compiler_options += self.compiler_options
 
-            self.current_module = self.source_mod(
+            cubin = cuda_compile(
                 kernel_string,
                 options=compiler_options + ["-e", kernel_name],
                 arch=("compute_" + self.cc) if self.cc != "00" else None,
@@ -220,10 +225,12 @@ class PyCudaFunctions(GPUBackend):
                 no_extern_c=no_extern_c,
             )
 
+            self.current_module = drv.module_from_buffer(cubin)
+
             self.func = self.current_module.get_function(kernel_name)
             if not isinstance(self.func, str):
                 self.num_regs = self.func.num_regs
-            return self.func
+            return self.func, cubin
         except drv.CompileError as e:
             if "uses too much shared data" in e.stderr:
                 raise SkippableFailure("uses too much shared data")
