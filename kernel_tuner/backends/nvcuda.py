@@ -149,8 +149,11 @@ class CudaFunctions(GPUBackend):
         :param kernel_string: The CUDA kernel code that contains the function `kernel_name`
         :type kernel_string: string
 
-        :returns: A kernel that can be launched by the CUDA runtime
+        :returns self.func: A kernel that can be launched by the CUDA runtime
         :rtype:
+
+        :returns buff: The binary of the CUDA kernel, to be saved in the cache.
+        :rtype buff: bytes
         """
         kernel_string = kernel_instance.kernel_string
         kernel_name = kernel_instance.name
@@ -199,7 +202,7 @@ class CudaFunctions(GPUBackend):
             print(log.decode("utf-8"))
             raise re
 
-        return self.func
+        return self.func, bytes(buff)
 
     def start_event(self):
         """Records the event that marks the start of a measurement."""

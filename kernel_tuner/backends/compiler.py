@@ -300,13 +300,21 @@ class CompilerFunctions(CompilerBackend):
             func = getattr(self.lib, kernel_name)
             func.restype = C.c_float
 
+            ## Read the kernel into binary
+            try:
+                with open(filename + lib_extension, 'rb') as f:
+                    binary = f.read()
+            except Exception as e:
+                logging.warning("Failed to load binary data: {e}")
+                binary = None
+
         finally:
             delete_temp_file(source_file)
             delete_temp_file(filename + ".o")
             delete_temp_file(filename + ".so")
             delete_temp_file(filename + ".dylib")
 
-        return func
+        return func, binary
 
     def start_event(self):
         """Records the event that marks the start of a measurement

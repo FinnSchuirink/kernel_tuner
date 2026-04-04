@@ -115,7 +115,7 @@ class CupyFunctions(GPUBackend):
         :param kernel_string: The CUDA kernel code that contains the function `kernel_name`
         :type kernel_string: string
 
-        :returns: An CUDA kernel that can be called directly.
+        :returns self.func: An CUDA kernel that can be called directly.
         :rtype: cupy.RawKernel
         """
         kernel_string = kernel_instance.kernel_string
@@ -134,7 +134,7 @@ class CupyFunctions(GPUBackend):
 
         self.func = self.current_module.get_function(kernel_name)
         self.num_regs = self.func.num_regs
-        return self.func
+        return self.func, None
 
     def start_event(self):
         """Records the event that marks the start of a measurement."""

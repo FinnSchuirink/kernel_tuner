@@ -141,8 +141,11 @@ class HipFunctions(GPUBackend):
             in the parameter space.
         :type kernel_instance: kernel_tuner.core.KernelInstance
 
-        :returns: A HIP kernel function that can be called.
-        :rtype: hipFunction_t
+        :returns kernel: A HIP kernel function that can be called.
+        :rtype kernel: hipFunction_t
+    
+        :returns code: The binary of the HIP kernel, to be saved in the cache.
+        :rtype code: bytes
         """
         logging.debug("HipFunction compile called")
 
@@ -189,7 +192,7 @@ class HipFunctions(GPUBackend):
             hip_check(hiprtc.hiprtcDestroyProgram(prog.createRef()))
             raise e
 
-        return kernel
+        return kernel, bytes(code)
 
     def start_event(self):
         """Records the event that marks the start of a measurement."""

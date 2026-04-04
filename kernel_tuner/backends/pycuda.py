@@ -202,8 +202,11 @@ class PyCudaFunctions(GPUBackend):
         :param kernel_string: The CUDA kernel code that contains the function `kernel_name`
         :type kernel_string: string
 
-        :returns: An CUDA kernel that can be called directly.
-        :rtype: pycuda.driver.Function
+        :returns self.func: An CUDA kernel that can be called directly.
+        :rtype self.func: pycuda.driver.Function
+
+        :returns binary: Binary of the CUDA kernel to be saved in the cache
+        :rtype binary: bytes
         """
 
         kernel_string = kernel_instance.kernel_string
@@ -216,6 +219,7 @@ class PyCudaFunctions(GPUBackend):
             if self.compiler_options:
                 compiler_options += self.compiler_options
 
+            ## First compile into .cubin, to be saved in cache
             cubin = cuda_compile(
                 kernel_string,
                 options=compiler_options + ["-e", kernel_name],
@@ -224,13 +228,15 @@ class PyCudaFunctions(GPUBackend):
                 cache_dir=False,
                 no_extern_c=no_extern_c,
             )
-
+            
+            ## Create module to extract the function
             self.current_module = drv.module_from_buffer(cubin)
 
             self.func = self.current_module.get_function(kernel_name)
             if not isinstance(self.func, str):
                 self.num_regs = self.func.num_regs
             return self.func, cubin
+        
         except drv.CompileError as e:
             if "uses too much shared data" in e.stderr:
                 raise SkippableFailure("uses too much shared data")

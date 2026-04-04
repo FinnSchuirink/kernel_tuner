@@ -105,14 +105,19 @@ class OpenCLFunctions(GPUBackend):
         :param kernel_string: The OpenCL kernel code that contains the function `kernel_name`
         :type kernel_string: string
 
-        :returns: An OpenCL kernel that can be called directly.
-        :rtype: pyopencl.Kernel
+        :returns func: An OpenCL kernel that can be called directly.
+        :rtype func: pyopencl.Kernel
+
+        :returns binary: The binary of the OpenCL kernel
+        :rtype binary: bytes
         """
         prg = cl.Program(self.ctx, kernel_instance.kernel_string).build(
             options=self.compiler_options
         )
+        binary = prg.get_info(cl.program_info.BINARIES)
+
         func = getattr(prg, kernel_instance.name)
-        return func
+        return func, binary
 
     def start_event(self):
         """Records the event that marks the start of a measurement.

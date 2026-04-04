@@ -7,10 +7,9 @@ class CompilationCache:
     """Class to build a compilation cache that re-uses kernels, if the kernel exists
 
         Cache directory:
-            <cahce_dir>/
+            <cache_dir>/
                 index.json -> Mapping from cache key to metadata
-                <cache_key>.ptx -> Compiled binary
-                <cache_key.cu -> Compiled binary
+                <cache_key>.bin -> Compiled binary
     """
 
     def __init__(self, cache_dir: str = "compilation_cache"):

@@ -751,52 +751,6 @@ class DeviceInterface(object):
         else:
             logging.warning(f"_load_binary: unsupported backend {self.lang}, returning None")
             return None
-    
-    def _extract_binary(self) -> bytes | None:
-        ## FIXME: Add logic for binary saving to cache
-        if (self.lang.upper() == "CUDA"):
-            try: 
-                return None
-            except Exception as e:
-                logging.warning(f"_extract_binary (CUDA): {e}")
-                return None
-        elif (self.lang.upper() == "CUPY"):
-            try:
-                return None
-            except Exception as e:
-                logging.warning(f"_extract_binary (CUDA): {e}")
-                return None
-        elif (self.lang.upper() == "NVCUDA"):
-            try:
-                return None
-            except Exception as e:
-                logging.warning(f"_extract_binary (NVCUDA): {e}")
-                return None
-        elif (self.lang.upper() == "OPENCL"):
-            import pyopencl as cl
-            try:
-                binary = self.dev.current_module.get_info(cl.program_info.BINARIES)
-                return binary
-            except Exception as e:
-                logging.warning(f"_extract_binary (OPENCL): {e}")
-                return None
-        elif (self.lang.upper() in ["C", "FORTRAN"]):
-            try:
-                return None
-            except Exception as e:
-                logging.warning(f"_extract_binary ([C, FORTRAN]): {e}")
-                return None
-        elif (self.lang.upper() == "HIP"):
-            try:
-                return None
-            except Exception as e:
-                logging.warning(f"_extract_binary (HIP): {e}")
-                return None
-        else:
-            logging.warning(f"_load_binary: unsupported backend {self.lang}, returning None")
-            return None
-        
-    
 
     def compile_kernel(self, instance, verbose):
         """Compile the kernel for this specific instance."""
@@ -815,10 +769,12 @@ class DeviceInterface(object):
             logging.debug("Cache hit, loading binary!")
             func = self._load_binary(binary=compiled_binary, kernel_instance=instance)
             return func
-
+        
         logging.debug("Cache miss, recompiling binary!")
+        
         # compile kernel_string into device func
         func = None
+        binary = None
         try:
             func, binary = self.dev.compile(instance)
         except Exception as e:
@@ -844,8 +800,6 @@ class DeviceInterface(object):
                 print("Error while compiling:", instance.name)
                 raise e
         if func is not None and binary is not None:
-            binary = self._extract_binary()
-            if (binary is not None):
                 logging.debug(f"Saving {instance.name} to cache, to avoid recompilation")
                 self.compilation_cache.put(
                     key=cache_key,
@@ -858,8 +812,6 @@ class DeviceInterface(object):
                         "compiler_options": list(self.compiler_options)
                     }
                 )
-            else:
-                logging.warning(f"Binary extraction failed for {instance.name}")
         return func
 
     @staticmethod
