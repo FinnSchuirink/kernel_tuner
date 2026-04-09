@@ -94,7 +94,7 @@ class CompilationCache:
         return binary_path.read_bytes()
     
     @staticmethod
-    def make_cache_key(kernel_string: str, backend: str, device: str, flags: list[str]) -> str:
+    def make_cache_key(kernel_string: str, backend: str, device: str, flags: list[str], cuda_version=None, cc=None) -> str:
 
         """Function that creates a uniquely identifieable hash for each different kernel
         :param kernel_string: Stringified kernel
@@ -121,6 +121,11 @@ class CompilationCache:
         # Sort flags as compiler flags are associative
         for flag in sorted(flags or []):
             h.update(flag.encode())
+
+        if cuda_version:
+            h.update(cuda_version.encode())
+        if cc:
+            h.update(cc.encode())
 
         # Cretae valid indexing key 
         return h.hexdigest()

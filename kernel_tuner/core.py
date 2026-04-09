@@ -756,11 +756,16 @@ class DeviceInterface(object):
         """Compile the kernel for this specific instance."""
         logging.debug("compile_kernel " + instance.name)
 
+        compute_capability = getattr(self.dev, "env", {}).get("compute_capability")
+        cuda_vers = getattr(self.dev, "env", {}).get("cuda_version")
+
         cache_key = CompilationCache.make_cache_key(
             kernel_string=instance.kernel_string,
             backend=self.lang,
             device=self.dev.name,
-            flags=self.compiler_options
+            flags=self.compiler_options,
+            cuda_version= cuda_vers,
+            cc=compute_capability
         )
 
         compiled_binary = self.compilation_cache.get(cache_key)
@@ -809,7 +814,9 @@ class DeviceInterface(object):
                         "backend": self.lang,
                         "device": self.dev.name,
                         "params": instance.params,
-                        "compiler_options": list(self.compiler_options)
+                        "compiler_options": list(self.compiler_options),
+                        "Cuda_version": cuda_vers if cuda_vers is not None else "N.A",
+                        "Compute_Capability": compute_capability if compute_capability is not None else "N.A"
                     }
                 )
         return func

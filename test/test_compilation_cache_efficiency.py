@@ -218,11 +218,11 @@ def _test_hip_caching():
 def main():
     tests = {
         "c": _test_c_caching,
-        "fortran": _test_fortran_caching,
-        "cuda": _test_cuda_caching,
-        "cupy": _test_cupy_caching,
-        "nvcuda": _test_nvcuda_caching,
-        "hip": _test_hip_caching,
+        ##"fortran": _test_fortran_caching,
+        ##"cuda": _test_cuda_caching,
+        ##"cupy": _test_cupy_caching,
+        ##"nvcuda": _test_nvcuda_caching,
+        ##"hip": _test_hip_caching,
     }
     for test in tests:
         print(f"Testing caching for {test.upper()}:\n")

@@ -33,6 +33,7 @@ temp_*.*
 .nox
 venv/
 compilation_cache/
+.venv_win/
 
 ### Visual Studio Code ###
 !.vscode/settings.json
