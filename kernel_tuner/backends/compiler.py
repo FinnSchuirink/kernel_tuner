@@ -9,6 +9,8 @@ import logging
 import ctypes as C
 import _ctypes
 
+import os, tempfile
+
 import numpy as np
 import numpy.ctypeslib
 
@@ -315,6 +317,27 @@ class CompilerFunctions(CompilerBackend):
             delete_temp_file(filename + ".dylib")
 
         return func, binary
+    
+    def load_binary_to_kernel(self, binary, kernel_instance):
+        logging.debug("Trying to load C, FORTRAN binary")
+        try:
+            ## Write binary to .so file
+            with tempfile.NamedTemporaryFile(suffix=".so", delete=False) as f:
+                    f.write(binary)
+                    so_file_name = f.name
+
+            ## Load shared library
+            lib = C.CDLL(so_file_name)
+
+            ## Remove temporary file
+            os.remove(so_file_name)
+
+            ## Extract the function
+            func = getattr(lib, kernel_instance.name)
+            return func
+        except Exception as e:
+            logging.warning(f"_load_binary ([C, FORTRAN]): {e}")
+            return None
 
     def start_event(self):
         """Records the event that marks the start of a measurement

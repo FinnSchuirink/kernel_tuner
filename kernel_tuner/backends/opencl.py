@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 import numpy as np
+import logging
 
 from kernel_tuner.backends.backend import GPUBackend
 from kernel_tuner.observers.opencl import OpenCLObserver
@@ -118,6 +119,24 @@ class OpenCLFunctions(GPUBackend):
 
         func = getattr(prg, kernel_instance.name)
         return func, binary
+    
+    def load_binary_to_kernel(self, binary, kernel_instance):
+        logging.debug("Trying to load OPENCL binary")
+
+        try:
+            ## Create program from binary
+            program = cl.Program(self.dev.ctx, [self.dev.dev], [binary])
+
+            ## Build the program with specified compiler options
+            program.build(options= " ".join(self.compiler_options))
+
+            ## Extract the function
+            func = getattr(program, kernel_instance.name)
+            self.dev.func = func
+            return func
+        except Exception as e:
+            logging.warning(f"_load_binary (OPENCL): {e}")
+            return None
 
     def start_event(self):
         """Records the event that marks the start of a measurement.

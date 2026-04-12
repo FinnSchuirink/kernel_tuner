@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 import numpy as np
+import tempfile, os, logging
 
 from kernel_tuner.backends.backend import GPUBackend
 from kernel_tuner.observers.cupy import CupyRuntimeObserver
@@ -135,6 +136,32 @@ class CupyFunctions(GPUBackend):
         self.func = self.current_module.get_function(kernel_name)
         self.num_regs = self.func.num_regs
         return self.func, None
+
+    def load_binary_to_kernel(self, binary, kernel_instance):
+        logging.debug("Trying to load CUPY binary")
+
+        try:    
+            ## Create temporary .cubin file from binary
+            with tempfile.NamedTemporaryFile(suffix=".cubin", delete=False) as f:
+                f.write(binary)
+                cubin_file_name = f.name
+
+            ## Extract module from temporary .cubin file
+            module = cp.RawModule(path=cubin_file_name)
+
+            ## Remove temporary .cubin file
+            os.remove(cubin_file_name)
+
+            ## Update current module
+            self.dev.current_module = module
+
+            ## Extract function
+            func = module.get_function(kernel_instance.name)
+            self.dev.func = func
+            return func
+        except Exception as e:
+            logging.warning(f"_load_binary (CUDA): {e}")
+            return None
 
     def start_event(self):
         """Records the event that marks the start of a measurement."""

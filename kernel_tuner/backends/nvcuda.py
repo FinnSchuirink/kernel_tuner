@@ -2,6 +2,7 @@
 from warnings import warn
 
 import numpy as np
+import logging
 
 from kernel_tuner.backends.backend import GPUBackend
 from kernel_tuner.observers.nvcuda import CudaRuntimeObserver
@@ -203,6 +204,24 @@ class CudaFunctions(GPUBackend):
             raise re
 
         return self.func, bytes(buff)
+
+    def load_binary_to_kernel(self, binary, kernel_instance):
+        logging.debug("Trying to load NVCUDA binary")
+
+        try:
+            ## Get module
+            _, module = driver.cuModuleLoadData(binary)
+
+            ## Update current module
+            self.dev.current_module = module
+
+            ## Extract function
+            _, func = driver.cuModuleGetFunction(module, kernel_instance.name.encode())
+            self.dev.func = func
+            return func
+        except Exception as e:
+            logging.warning(f"_load_binary (NVCUDA): {e}")
+            return None
 
     def start_event(self):
         """Records the event that marks the start of a measurement."""

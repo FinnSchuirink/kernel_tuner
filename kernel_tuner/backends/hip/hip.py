@@ -193,6 +193,24 @@ class HipFunctions(GPUBackend):
             raise e
 
         return kernel, bytes(code)
+    
+    def load_binary_to_kernel(self, binary, kernel_instance):
+        logging.debug("Trying to load HIP binary")
+
+        try:
+            ## Load HIP module
+            _, module = hip.hipModuleLoadData(binary)
+
+            ## Update the current module
+            self.dev.current_module = module
+
+            ## Extract the function
+            func = hip.hipModuleGetFunction(module, kernel_instance.name)
+            self.dev.func = func
+            return func
+        except Exception as e:
+            logging.warning(f"_load_binary (HIP): {e}")
+            return None
 
     def start_event(self):
         """Records the event that marks the start of a measurement."""

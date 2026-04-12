@@ -55,7 +55,7 @@ class CompilationCache:
         binary_path = Path(os.path.join(self._cache_dir, cache_filename))
         binary_path.write_bytes(compiled_binary)
 
-        ## Save cache entry with metadata
+        ## Save cache entry with metadata in a map
         self._index[key] = {
             "filename": cache_filename,
             "size": len(compiled_binary),
@@ -69,7 +69,7 @@ class CompilationCache:
     def get(self, key: str):
         """Get compiled binary from the cache
 
-        :param key: The unique key for the compiled binary (using make_cache_key)
+        :param key: The deterministic key for the compiled binary (using make_cache_key)
         :type key: str
         """
         ## Binary not in cache
@@ -109,6 +109,8 @@ class CompilationCache:
         :param flags: List of compilation flags
         :type list[str]
         """
+
+        # FIXME: Let user determinate which parameter is essential for recopilatiom (higher clock frequency)
         
         # Deterministic hashing to uniquely identify kernels
         h = hashlib.sha256()
@@ -118,7 +120,7 @@ class CompilationCache:
         h.update(backend.encode())
         h.update(str(device).encode())
 
-        # Sort flags as compiler flags are associative
+        # Sort flags as compiler flags are commutative
         for flag in sorted(flags or []):
             h.update(flag.encode())
 
