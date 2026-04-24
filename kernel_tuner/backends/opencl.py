@@ -128,7 +128,12 @@ class OpenCLFunctions(GPUBackend):
             program = cl.Program(self.dev.ctx, [self.dev.dev], [binary])
 
             ## Build the program with specified compiler options
-            program.build(options= " ".join(self.compiler_options))
+            if (isinstance(self.compiler_options, list)):
+                comp_options = " ".join(self.compiler_options)
+            else:
+                comp_options = self.compiler_options
+                
+            program.build(options=comp_options)
 
             ## Extract the function
             func = getattr(program, kernel_instance.name)

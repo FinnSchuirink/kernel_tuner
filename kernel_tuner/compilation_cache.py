@@ -85,7 +85,7 @@ class CompilationCache:
 
         ## Key exists in cache, but file is deleted -> update _index
         if (not os.path.exists(binary_path)):
-            self._index.__delitem__(key)
+            del self._index[key]
             self._misses += 1
             return None
 
@@ -158,6 +158,7 @@ class CompilationCache:
 
         
         
+
         
 
 
