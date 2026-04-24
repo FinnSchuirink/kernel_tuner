@@ -653,7 +653,8 @@ class DeviceInterface(object):
             ## Load the binary 
             logging.debug("Cache hit, loading binary!")
             func = self.dev.load_binary_to_kernel(binary=compiled_binary, kernel_instance=instance)
-            return func
+            if func is not None:
+                return func
         
         logging.debug("Cache miss, recompiling binary!")
         

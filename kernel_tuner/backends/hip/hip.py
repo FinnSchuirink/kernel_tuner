@@ -205,7 +205,7 @@ class HipFunctions(GPUBackend):
             self.dev.current_module = module
 
             ## Extract the function
-            _, func = hip.hipModuleGetFunction(module, kernel_instance.name)
+            _, func = hip.hipModuleGetFunction(module, kernel_instance.name.encode())
             self.dev.func = func
             return func
         except Exception as e:

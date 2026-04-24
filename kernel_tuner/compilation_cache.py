@@ -32,7 +32,7 @@ class CompilationCache:
         """
         self._cache_dir = Path(cache_dir)
         self._cache_dir.mkdir(parents=True, exist_ok=True)
-        self._index_path = os.path.join(cache_dir, "index.json")
+        self._index_path = Path(os.path.join(cache_dir, "index.json"))
         self._hits = 0
         self._misses = 0
         self._index = self._load_index()
@@ -96,7 +96,7 @@ class CompilationCache:
     @staticmethod
     def make_cache_key(kernel_string: str, backend: str, device: str, flags: list[str], cuda_version=None, cc=None) -> str:
 
-        """Function that creates a uniquely identifieable hash for each different kernel
+        """Function that creates a uniquely identifiable hash for each different kernel
         :param kernel_string: Stringified kernel
         :type kernel_string: str
 
@@ -110,12 +110,12 @@ class CompilationCache:
         :type list[str]
         """
 
-        # FIXME: Let user determinate which parameter is essential for recopilatiom (higher clock frequency)
+        # FIXME: Let user determinate which parameter is essential for recompilation (higher clock frequency)
         
         # Deterministic hashing to uniquely identify kernels
         h = hashlib.sha256()
 
-        ## Create the hash by coiverting string into bytes
+        ## Create the hash by converting string into bytes
         h.update(kernel_string.encode())
         h.update(backend.encode())
         h.update(str(device).encode())

@@ -242,6 +242,23 @@ class PyCudaFunctions(GPUBackend):
                 raise SkippableFailure("uses too much shared data")
             else:
                 raise e
+    
+    def load_binary_to_kernel(self, binary, kernel_instance):
+        logging.debug("Trying to load PYCUDA binary")
+        try:
+            ## Get module from saved binary
+            mod = drv.module_from_buffer(binary)
+
+            ## Update the current module
+            self.dev.current_module = mod
+
+            ## Extract function
+            func = self.dev.current_module.get_function(kernel_instance.name)
+            self.dev.func = func
+            return func
+        except Exception as e:
+            logging.warning(f"_load_binary (PYCUDA): {e}")
+            return None
 
     def start_event(self):
         """Records the event that marks the start of a measurement."""

@@ -115,7 +115,8 @@ class OpenCLFunctions(GPUBackend):
         prg = cl.Program(self.ctx, kernel_instance.kernel_string).build(
             options=self.compiler_options
         )
-        binary = prg.get_info(cl.program_info.BINARIES)
+        binaries = prg.get_info(cl.program_info.BINARIES)
+        binary = binaries[0]
 
         func = getattr(prg, kernel_instance.name)
         return func, binary

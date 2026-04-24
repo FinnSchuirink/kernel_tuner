@@ -329,15 +329,15 @@ class CompilerFunctions(CompilerBackend):
             ## Load shared library
             lib = C.CDLL(so_file_name)
 
-            ## Remove temporary file
-            os.remove(so_file_name)
-
             ## Extract the function
             func = getattr(lib, kernel_instance.name)
             return func
         except Exception as e:
             logging.warning(f"_load_binary ([C, FORTRAN]): {e}")
             return None
+        finally:
+            ## Remove temporary file
+            os.remove(so_file_name)
 
     def start_event(self):
         """Records the event that marks the start of a measurement

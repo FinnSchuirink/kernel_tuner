@@ -135,6 +135,8 @@ class CupyFunctions(GPUBackend):
 
         self.func = self.current_module.get_function(kernel_name)
         self.num_regs = self.func.num_regs
+        
+        ## FIXME: Return CuPY binary
         return self.func, None
 
     def load_binary_to_kernel(self, binary, kernel_instance):
