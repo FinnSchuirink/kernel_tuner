@@ -570,7 +570,7 @@ class DeviceInterface(object):
 
         return result
 
-    def compile_and_benchmark(self, kernel_source, gpu_args, params, kernel_options, to):
+    def compile(self, kernel_source, gpu_args, params, kernel_options, to):
         ## Reset previous timers
         last_compilation_time = None
         last_verification_time = None
@@ -628,7 +628,7 @@ class DeviceInterface(object):
 
             # clean up any temporary files, if no error occurred
             instance.delete_temp_files()
-        return result
+        return result, func, to, instance
 
     def compile_kernel(self, instance, verbose):
         """Compile the kernel for this specific instance."""

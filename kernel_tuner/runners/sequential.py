@@ -84,11 +84,14 @@ class SequentialRunner(Runner):
                 # attempt to warmup the GPU by running the first config in the parameter space and ignoring the result
                 if not self.warmed_up:
                     warmup_time = perf_counter()
-                    self.dev.compile_and_benchmark(self.kernel_source, self.gpu_args, params, self.kernel_options, tuning_options)
+                    self.dev.compile(self.kernel_source, self.gpu_args, params, self.kernel_options, tuning_options)
                     self.warmed_up = True
                     warmup_time = 1e3 * (perf_counter() - warmup_time)
 
-                result = self.dev.compile_and_benchmark(self.kernel_source, self.gpu_args, params, self.kernel_options, tuning_options)
+                result, func, to, instance = self.dev.compile(self.kernel_source, self.gpu_args, params, self.kernel_options, tuning_options)
+
+                if func is not None:
+                    self.dev.benchmark_kernel(instance, func, self.gpu_args, to, result)
 
                 params.update(result)
 
