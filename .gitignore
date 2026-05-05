@@ -44,3 +44,6 @@ temp_*.*
 
 .vscode
 .idea
+
+/.venv_win
+/venv
