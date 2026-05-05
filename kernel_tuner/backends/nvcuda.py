@@ -213,11 +213,11 @@ class CudaFunctions(GPUBackend):
             _, module = driver.cuModuleLoadData(binary)
 
             ## Update current module
-            self.dev.current_module = module
+            self.current_module = module
 
             ## Extract function
             _, func = driver.cuModuleGetFunction(module, kernel_instance.name.encode())
-            self.dev.func = func
+            self.func = func
             return func
         except Exception as e:
             logging.warning(f"_load_binary (NVCUDA): {e}")

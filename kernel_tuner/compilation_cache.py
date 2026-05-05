@@ -107,7 +107,13 @@ class CompilationCache:
         :type device: str
 
         :param flags: List of compilation flags
-        :type list[str]
+        :type flags: list[str]
+
+        :param cuda_version: CUDA driver version
+        :type cuda_version: int
+
+        :param cc: Compute Capabilities
+        :type cc: int
         """
 
         # FIXME: Let user determinate which parameter is essential for recompilation (higher clock frequency)
@@ -125,11 +131,11 @@ class CompilationCache:
             h.update(flag.encode())
 
         if cuda_version:
-            h.update(cuda_version.encode())
+            h.update(str(cuda_version).encode())
         if cc:
-            h.update(cc.encode())
+            h.update(str(cc).encode())
 
-        # Cretae valid indexing key 
+        # Create valid indexing key 
         return h.hexdigest()
     
     def log_stats(self) -> dict:

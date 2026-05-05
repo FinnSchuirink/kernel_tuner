@@ -114,7 +114,7 @@ def tune(
     metrics = OrderedDict()
     metrics["GFLOP/s"] = lambda p: total_flops / (p["time"] / 1000.0)
 
-    base_cachepath = f"../cachefiles/convolution_milo/{device_name.upper()}"
+    base_cachepath = f"cachefiles/convolution_milo/{device_name.upper()}"
 
     # start tuning
     start = time.time()

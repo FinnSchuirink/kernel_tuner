@@ -84,24 +84,34 @@ def _clear_cache(cache_dir="compilation_cache"):
         shutil.rmtree(cache_dir)
 
 def _print_statistics(lang, cold_cache_results, warm_cache_results):
-    warm_compile_time = warm_cache_results['compile_time']
-    cold_compile_time = cold_cache_results['compile_time']
 
-    print(f"{lang}\n")
-    print(f"Total compilation time tune_kernel with a cold cache: {cold_compile_time}\n")
-    print(f"Total compilation time tune_kernel with a warm cache: {warm_compile_time}\n")
+    ## Calculate total compilation times
+    sum_cold = 0
+    sum_warm = 0
+
+    for result in warm_cache_results:
+        sum_warm += result.get('compile_time', 0)
     
-    if (warm_compile_time == 0):
-        print("Speedup: NaN, dividing by 0")
+    for result in cold_cache_results:
+        sum_cold += result.get('compile_time', 0)
+
+    print(f"\n{lang} Results:")
+    print(f"    - Cold cache time: {sum_cold}s")
+    print(f"    - Warm caache time: {sum_warm}s")
+    
+    if (sum_warm == 0):
+        print("    - Speedup: NaN, warm cache time == 0")
     else:
-        speedup = cold_compile_time / warm_compile_time
-        print (f"Speedup: {speedup}")
+        speedup = sum_cold / sum_warm
+        print (f"    - Speedup: {speedup}x")
 
 def _run_kernel_pipeline_twice(tune_kwargs):
-    _clear_cache()
+    print("\nRunning cold cache build:")
     cold, _ = tune_kernel(**tune_kwargs)
+
+    print("\nRunning warm cache build:")
     warm, _ = tune_kernel(**tune_kwargs)
-    return cold[0], warm[0]
+    return cold, warm
 
 # C ----------------------------------------------------------------------------------------
 
@@ -218,14 +228,20 @@ def _test_hip_caching():
 def main():
     tests = {
         "c": _test_c_caching,
-        ##"fortran": _test_fortran_caching,
-        ##"cuda": _test_cuda_caching,
-        ##"cupy": _test_cupy_caching,
-        ##"nvcuda": _test_nvcuda_caching,
+        "fortran": _test_fortran_caching,
+        "cuda": _test_cuda_caching,
+        "cupy": _test_cupy_caching,
+        "nvcuda": _test_nvcuda_caching,
         ##"hip": _test_hip_caching,
     }
+    print("\n" + "=" * 70)
+    print("Compilation cache efficiency test")
+    print("=" * 70)
+    _clear_cache()
     for test in tests:
-        print(f"Testing caching for {test.upper()}:\n")
+        print(f"\n{'-' * 70}")
+        print(f"Testing: {test.upper()}")
+        print(f"{'-' * 70}")
         try:
             tests[test]()
         except Exception as e:

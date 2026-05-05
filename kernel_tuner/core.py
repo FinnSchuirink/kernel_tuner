@@ -644,8 +644,8 @@ class DeviceInterface(object):
             backend=self.lang,
             device=self.dev.name,
             flags=self.compiler_options,
-            cuda_version= cuda_vers,
-            cc=c_c
+            cuda_version= str(cuda_vers),
+            cc=str(c_c)
         )
 
         compiled_binary = self.compilation_cache.get(cache_key)
@@ -696,8 +696,8 @@ class DeviceInterface(object):
                         "device": self.dev.name,
                         "params": instance.params,
                         "compiler_options": list(self.compiler_options),
-                        "Cuda_version": cuda_vers if cuda_vers is not None else "N.A",
-                        "Compute_Capability": c_c if c_c is not None else "N.A"
+                        "Cuda_version": str(cuda_vers) if cuda_vers is not None else "N.A",
+                        "Compute_Capability": str(c_c) if c_c is not None else "N.A"
                     }
                 )
         return func

@@ -250,11 +250,11 @@ class PyCudaFunctions(GPUBackend):
             mod = drv.module_from_buffer(binary)
 
             ## Update the current module
-            self.dev.current_module = mod
+            self.current_module = mod
 
             ## Extract function
-            func = self.dev.current_module.get_function(kernel_instance.name)
-            self.dev.func = func
+            func = self.current_module.get_function(kernel_instance.name)
+            self.func = func
             return func
         except Exception as e:
             logging.warning(f"_load_binary (PYCUDA): {e}")
