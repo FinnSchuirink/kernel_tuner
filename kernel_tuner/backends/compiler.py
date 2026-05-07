@@ -306,7 +306,7 @@ class CompilerFunctions(CompilerBackend):
             delete_temp_file(filename + ".so")
             delete_temp_file(filename + ".dylib")
 
-        return func
+        return func, None
 
     def start_event(self):
         """Records the event that marks the start of a measurement

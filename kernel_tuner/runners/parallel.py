@@ -86,8 +86,11 @@ class ParallelRunner(Runner):
                     self.warmed_up = True
                     warmup_time = 1e3 * (perf_counter() - warmup_time)
 
-                result = self.dev.compile(self.kernel_source, self.gpu_args, params, self.kernel_options, tuning_options)
+                result, func, to, instance = self.dev.compile(self.kernel_source, self.gpu_args, params, self.kernel_options, tuning_options)
 
+                if func is not None:
+                    self.dev.benchmark_kernel(instance, func, self.gpu_args, to, result)
+                    
                 params.update(result)
 
                 if tuning_options.objective in result and isinstance(result[tuning_options.objective], ErrorConfig):

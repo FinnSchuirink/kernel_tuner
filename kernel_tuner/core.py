@@ -593,7 +593,7 @@ class DeviceInterface(object):
             try:
                 # compile the kernel
                 start_compilation = time.perf_counter()
-                func = self.compile_kernel(instance, verbose)
+                func, module = self.compile_kernel(instance, verbose)
                 if not func:
                     result[to.objective] = util.CompilationFailedConfig()
                 else:
@@ -602,10 +602,10 @@ class DeviceInterface(object):
                         self.dev.copy_shared_memory_args(util.get_smem_args(kernel_options.smem_args, params))
                     # add constant memory arguments to compiled module
                     if kernel_options.cmem_args is not None:
-                        self.dev.copy_constant_memory_args(kernel_options.cmem_args)
+                        self.dev.copy_constant_memory_args(kernel_options.cmem_args, module)
                     # add texture memory arguments to compiled module
                     if kernel_options.texmem_args is not None:
-                        self.dev.copy_texture_memory_args(kernel_options.texmem_args)
+                        self.dev.copy_texture_memory_args(kernel_options.texmem_args, module)
 
                 # stop compilation stopwatch and convert to milliseconds
                 last_compilation_time = 1000 * (time.perf_counter() - start_compilation)
@@ -636,8 +636,9 @@ class DeviceInterface(object):
 
         # compile kernel_string into device func
         func = None
+        module = None
         try:
-            func = self.dev.compile(instance)
+            func, module = self.dev.compile(instance)
         except Exception as e:
             # compiles may fail because certain kernel configurations use too
             # much shared memory for example, the desired behavior is to simply
@@ -660,7 +661,7 @@ class DeviceInterface(object):
                 print("compile_kernel failed due to error: " + error_message)
                 print("Error while compiling:", instance.name)
                 raise e
-        return func
+        return func, module
 
     @staticmethod
     def preprocess_gpu_arguments(old_arguments, params):
@@ -671,13 +672,13 @@ class DeviceInterface(object):
         """Adds shared memory arguments to the most recently compiled module."""
         self.dev.copy_shared_memory_args(smem_args)
 
-    def copy_constant_memory_args(self, cmem_args):
+    def copy_constant_memory_args(self, cmem_args, module):
         """Adds constant memory arguments to the most recently compiled module."""
-        self.dev.copy_constant_memory_args(cmem_args)
+        self.dev.copy_constant_memory_args(cmem_args, module)
 
-    def copy_texture_memory_args(self, texmem_args):
+    def copy_texture_memory_args(self, texmem_args, module):
         """Adds texture memory arguments to the most recently compiled module."""
-        self.dev.copy_texture_memory_args(texmem_args)
+        self.dev.copy_texture_memory_args(texmem_args, module)
 
     def create_kernel_instance(self, kernel_source, kernel_options, params, verbose):
         """Create kernel instance from kernel source, parameters, problem size, grid divisors, and so on."""

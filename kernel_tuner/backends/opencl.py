@@ -112,7 +112,7 @@ class OpenCLFunctions(GPUBackend):
             options=self.compiler_options
         )
         func = getattr(prg, kernel_instance.name)
-        return func
+        return func, None
 
     def start_event(self):
         """Records the event that marks the start of a measurement.

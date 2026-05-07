@@ -179,16 +179,16 @@ class CudaFunctions(GPUBackend):
             buff = b" " * size
             err = nvrtc.nvrtcGetPTX(program, buff)
             cuda_error_check(err)
-            err, self.current_module = driver.cuModuleLoadData(np.char.array(buff))
+            err, current_module = driver.cuModuleLoadData(np.char.array(buff))
             if err == driver.CUresult.CUDA_ERROR_INVALID_PTX:
                 raise SkippableFailure("uses too much shared data")
             else:
                 cuda_error_check(err)
-            err, self.func = driver.cuModuleGetFunction(self.current_module, str.encode(kernel_name))
+            err, func = driver.cuModuleGetFunction(current_module, str.encode(kernel_name))
             cuda_error_check(err)
 
             # get the number of registers per thread used in this kernel
-            num_regs = driver.cuFuncGetAttribute(driver.CUfunction_attribute.CU_FUNC_ATTRIBUTE_NUM_REGS, self.func)
+            num_regs = driver.cuFuncGetAttribute(driver.CUfunction_attribute.CU_FUNC_ATTRIBUTE_NUM_REGS, func)
             assert num_regs[0] == 0, f"Retrieving number of registers per thread unsuccesful: code {num_regs[0]}"
             self.num_regs = num_regs[1]
 
@@ -199,7 +199,7 @@ class CudaFunctions(GPUBackend):
             print(log.decode("utf-8"))
             raise re
 
-        return self.func
+        return func, current_module
 
     def start_event(self):
         """Records the event that marks the start of a measurement."""
@@ -225,7 +225,7 @@ class CudaFunctions(GPUBackend):
         err = runtime.cudaDeviceSynchronize()
         cuda_error_check(err)
 
-    def copy_constant_memory_args(self, cmem_args):
+    def copy_constant_memory_args(self, cmem_args, current_module):
         """Adds constant memory arguments to the most recently compiled module.
 
         :param cmem_args: A dictionary containing the data to be passed to the
@@ -236,7 +236,7 @@ class CudaFunctions(GPUBackend):
         :type cmem_args: dict( string: numpy.ndarray, ... )
         """
         for k, v in cmem_args.items():
-            err, symbol, _ = driver.cuModuleGetGlobal(self.current_module, str.encode(k))
+            err, symbol, _ = driver.cuModuleGetGlobal(current_module, str.encode(k))
             cuda_error_check(err)
             err = driver.cuMemcpyHtoD(symbol, v, v.nbytes)
             cuda_error_check(err)

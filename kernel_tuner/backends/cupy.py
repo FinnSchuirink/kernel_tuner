@@ -129,13 +129,13 @@ class CupyFunctions(GPUBackend):
 
         options = tuple(compiler_options)
 
-        self.current_module = cp.RawModule(
+        current_module = cp.RawModule(
             code=kernel_string, options=options, name_expressions=[kernel_name]
         )
 
-        self.func = self.current_module.get_function(kernel_name)
-        self.num_regs = self.func.num_regs
-        return self.func
+        func = current_module.get_function(kernel_name)
+        self.num_regs = func.num_regs
+        return func, current_module
 
     def start_event(self):
         """Records the event that marks the start of a measurement."""
@@ -153,7 +153,7 @@ class CupyFunctions(GPUBackend):
         """Halts execution until device has finished its tasks."""
         self.dev.synchronize()
 
-    def copy_constant_memory_args(self, cmem_args):
+    def copy_constant_memory_args(self, cmem_args, current_module):
         """Adds constant memory arguments to the most recently compiled module.
 
         :param cmem_args: A dictionary containing the data to be passed to the
@@ -164,7 +164,7 @@ class CupyFunctions(GPUBackend):
         :type cmem_args: dict( string: numpy.ndarray, ... )
         """
         for k, v in cmem_args.items():
-            symbol = self.current_module.get_global(k)
+            symbol = current_module.get_global(k)
             constant_mem = cp.ndarray(v.shape, v.dtype, symbol)
             constant_mem[:] = cp.asarray(v)
 
