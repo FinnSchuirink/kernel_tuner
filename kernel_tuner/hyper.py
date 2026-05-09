@@ -73,7 +73,7 @@ def tune_hyper_params(target_strategy: str, hyper_params: dict, restrictions: li
     # set default arguments if not provided
     put_if_not_present(kwargs, "verbose", True)
     put_if_not_present(kwargs, "quiet", False)
-    put_if_not_present(kwargs, "simulation_mode", False)
+    put_if_not_present(kwargs, "runner_mode", "Sequential")
     put_if_not_present(kwargs, "strategy", 'brute_force')
     put_if_not_present(kwargs, 'verify', None)
     arguments = [target_strategy]
@@ -108,7 +108,7 @@ if __name__ == "__main__":
     kwargs = dict(
         verbose=True,
         quiet=False,
-        simulation_mode=False,
+        runner_mode="Sequential",
         strategy=args.meta_strategy,
         cache=f"hyperparamtuning_t={strategy_to_tune}_m={args.meta_strategy}.json",
         strategy_options=dict(

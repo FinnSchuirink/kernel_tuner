@@ -54,7 +54,7 @@ def build(kernel_name, kernel_string, problem_size, args, tune_params, cmem_args
 def main():
 
     ## Read kernel string
-    with open('test/convolution.cu', 'r') as f:
+    with open('experiments/convolution_milo.cu', 'r') as f:
         kernel_string = f.read()
     kernel_name = "convolution_kernel"
     problem_size = (4096, 4096)

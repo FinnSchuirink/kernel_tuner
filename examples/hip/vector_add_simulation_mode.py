@@ -35,7 +35,7 @@ def tune():
     if os.path.isfile(filename):
         results, env = tune_kernel("vector_add", kernel_string, size, args, tune_params, 
                                 strategy="random_sample",  strategy_options=dict(max_fevals=10),
-                                lang="HIP", simulation_mode=True, cache="vector_add_cache.json")
+                                lang="HIP", runner_mode="Simulation", cache="vector_add_cache.json")
 
     else:
         print(f"{filename} does not exist in the directory, run vector_add.py first.")

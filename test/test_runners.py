@@ -103,7 +103,7 @@ def test_simulation_runner(env):
     result, res_env = tune_kernel(*env,
                                   cache=cache_filename,
                                   strategy="random_sample",
-                                  simulation_mode=True,
+                                  runner_mode="Simulation",
                                   strategy_options=dict(fraction=1))
     actual_time = (time.perf_counter() - start) * 1e3  # ms
     assert len(result) == len(tune_params["block_size_x"])
@@ -142,7 +142,7 @@ def test_constraint_aware_GA(env):
                             strategy_options=options,
                             verbose=True,
                             cache=cache_filename,
-                            simulation_mode=True)
+                            runner_mode="Simulation")
     assert len(result) > 0
 
 
@@ -153,7 +153,7 @@ def test_restrictions(env):
                             verbose=True,
                             restrictions=restrictions,
                             cache=cache_filename,
-                            simulation_mode=True)
+                            runner_mode="Simulation")
     assert len(result) == 6
 
 
@@ -206,7 +206,7 @@ def test_bayesian_optimization(env):
                                 strategy_options=options,
                                 verbose=True,
                                 cache=cache_filename,
-                                simulation_mode=True)
+                                runner_mode="Simulation")
         assert len(result) > 0
 
 
@@ -215,7 +215,7 @@ def test_random_sample(env):
                             strategy="random_sample",
                             strategy_options={"fraction": 0.1},
                             cache=cache_filename,
-                            simulation_mode=True)
+                            runner_mode="Simulation")
     # check that number of benchmarked kernels is 10% (rounded up)
     assert len(result) == 2
     # check all returned results make sense

@@ -41,6 +41,7 @@ from kernel_tuner.file_utils import get_input_file, get_t4_metadata, get_t4_resu
 from kernel_tuner.integration import get_objective_defaults
 from kernel_tuner.runners.sequential import SequentialRunner
 from kernel_tuner.runners.simulation import SimulationRunner
+from kernel_tuner.runners.parallel import ParallelRunner
 from kernel_tuner.searchspace import Searchspace
 
 try:
@@ -475,7 +476,7 @@ _tuning_options = Options(
             ),
         ),
         ("metrics", ("specifies user-defined metrics, please see :ref:`metrics`.", "dict")),
-        ("simulation_mode", ("Simulate an auto-tuning search from an existing cachefile", "bool")),
+        ("runner_mode", ("Simulation mode, Sequential mode, Parallel mode", "string")),
         ("observers", ("""A list of Observers to use during tuning, please see :ref:`observers`.""", "list")),
     ]
 )
@@ -586,7 +587,7 @@ def tune_kernel(
     strategy_options=None,
     cache=None,
     metrics=None,
-    simulation_mode=False,
+    runner_mode="Sequential",
     observers=None,
     objective=None,
     objective_higher_is_better=None,
@@ -603,7 +604,7 @@ def tune_kernel(
     objective, objective_higher_is_better = get_objective_defaults(objective, objective_higher_is_better)
 
     # check for forbidden names in tune parameters
-    util.check_tune_params_list(tune_params, observers, simulation_mode=simulation_mode)
+    util.check_tune_params_list(tune_params, observers, runner_mode=runner_mode)
 
     # check whether block_size_names are used
     block_size_names = util.check_block_size_params_names_list(block_size_names, tune_params)
@@ -654,7 +655,15 @@ def tune_kernel(
         strategy = brute_force
 
     # select the runner for this job based on input
-    selected_runner = SimulationRunner if simulation_mode else SequentialRunner
+    selected_runner = None
+    match(runner_mode):
+        case "Simulation":
+            selected_runner = SimulationRunner
+        case "Sequential": 
+            selected_runner = SequentialRunner
+        case "Parallel":
+            selected_runner = ParallelRunner
+
     tuning_options.simulated_time = 0
     runner = selected_runner(kernelsource, kernel_options, device_options, iterations, observers)
 
@@ -861,7 +870,7 @@ def tune_kernel_T1(
     cache_filepath: Path = None,
     objective="time",
     objective_higher_is_better=False,
-    simulation_mode=False,
+    runner_mode="Sequential",
     output_T4=True,
     iterations=7,
     device=None,
@@ -1007,7 +1016,7 @@ def tune_kernel_T1(
         restrictions=restrictions,
         lang=language,
         cache=cache_filepath,
-        simulation_mode=simulation_mode,
+        runner_mode=runner_mode,
         quiet=True,
         verbose=False,
         iterations=iterations,

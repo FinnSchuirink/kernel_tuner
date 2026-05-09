@@ -52,7 +52,7 @@ class SimulationRunner(Runner):
         self.dev = SimulationDevice(1024, dict(device_name="Simulation"), self.quiet)
 
         self.kernel_source = kernel_source
-        self.simulation_mode = True
+        self.runner_mode = "Simulation"
         self.kernel_options = kernel_options
 
         self.start_time = perf_counter()

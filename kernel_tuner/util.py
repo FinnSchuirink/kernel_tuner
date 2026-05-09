@@ -212,14 +212,14 @@ def check_stop_criterion(to: dict) -> float:
     
 
 
-def check_tune_params_list(tune_params, observers, simulation_mode=False):
+def check_tune_params_list(tune_params, observers, runner_mode="Sequential"):
     """Raise an exception if a tune parameter has a forbidden name."""
     forbidden_names = ("grid_size_x", "grid_size_y", "grid_size_z", "time")
     for name, param in tune_params.items():
         if name in forbidden_names:
             raise ValueError("Tune parameter " + name + " with value " + str(param) + " has a forbidden name!")
     if any("nvml_" in param for param in tune_params):
-        if not simulation_mode and (not observers or not any(isinstance(obs, NVMLObserver) for obs in observers)):
+        if (runner_mode != "Simulation") and (not observers or not any(isinstance(obs, NVMLObserver) for obs in observers)):
             raise ValueError("Tune parameters starting with nvml_ require an NVMLObserver!")
 
 
@@ -1170,7 +1170,7 @@ def process_cache(cache, kernel_options, tuning_options, runner):
 
     # if file does not exist, create new cache
     if not os.path.isfile(cache):
-        if tuning_options.simulation_mode:
+        if tuning_options.runner_mode == "Simulation":
             raise ValueError(f"Simulation mode requires an existing cachefile: file {cache} does not exist")
 
         c = dict()
@@ -1193,10 +1193,10 @@ def process_cache(cache, kernel_options, tuning_options, runner):
 
     # if file exists
     else:
-        cached_data = read_cache(cache, open_cache=not tuning_options.simulation_mode)
+        cached_data = read_cache(cache, open_cache=not tuning_options.runner_mode)
 
         # if in simulation mode, use the device name from the cache file as the runner device name
-        if runner.simulation_mode:
+        if runner.runner_mode == "Simulation":
             runner.dev.name = cached_data["device_name"]
 
         # check if it is safe to continue tuning from this cache

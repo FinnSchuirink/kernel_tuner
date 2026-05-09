@@ -37,7 +37,7 @@ __global__ void fp32_kernel(float *ptr)
 }
 """
 
-def get_frequency_power_relation_fp32(device, n_samples=10, nvidia_smi_fallback=None, use_locked_clocks=False, cache=None, simulation_mode=None):
+def get_frequency_power_relation_fp32(device, n_samples=10, nvidia_smi_fallback=None, use_locked_clocks=False, cache=None, runner_mode=None):
     """Use NVML and PyCUDA with a synthetic kernel to obtain samples of frequency-power pairs."""
     # get some numbers about the device
     if not cache:
@@ -80,7 +80,7 @@ def get_frequency_power_relation_fp32(device, n_samples=10, nvidia_smi_fallback=
 
     results, _ = tune_kernel("fp32_kernel", fp32_kernel_string, problem_size=(multiprocessor_count, 64),
                              arguments=arguments, tune_params=tune_params, observers=[nvmlobserver],
-                             verbose=False, quiet=True, metrics=metrics, iterations=10, simulation_mode=simulation_mode,
+                             verbose=False, quiet=True, metrics=metrics, iterations=10, runner_mode=runner_mode,
                              grid_div_x=[], grid_div_y=[], cache=cache or f"synthetic_fp32_cache_{device_name}.json")
 
     freqs = np.array([res["core_freq"] for res in results])
@@ -142,7 +142,7 @@ def fit_power_frequency_model(freqs, nvml_power):
     return clock_threshold + clock_min, fit_parameters, scale_parameters
 
 
-def create_power_frequency_model(device=0, n_samples=10, verbose=False, nvidia_smi_fallback=None, use_locked_clocks=False, cache=None, simulation_mode=None):
+def create_power_frequency_model(device=0, n_samples=10, verbose=False, nvidia_smi_fallback=None, use_locked_clocks=False, cache=None, runner_mode=None):
     """Calculate the most energy-efficient clock frequency of device.
 
     This function uses a performance model to fit the power-frequency curve
@@ -176,7 +176,7 @@ def create_power_frequency_model(device=0, n_samples=10, verbose=False, nvidia_s
     :rtype: float
 
     """
-    freqs, nvml_power = get_frequency_power_relation_fp32(device, n_samples, nvidia_smi_fallback, use_locked_clocks, cache=cache, simulation_mode=simulation_mode)
+    freqs, nvml_power = get_frequency_power_relation_fp32(device, n_samples, nvidia_smi_fallback, use_locked_clocks, cache=cache, runner_mode=runner_mode)
 
     if verbose:
         print("Clock frequencies:", freqs.tolist())

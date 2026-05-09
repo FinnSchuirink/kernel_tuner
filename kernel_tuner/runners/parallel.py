@@ -42,7 +42,7 @@ class ParallelRunner(Runner):
             self.quiet = device_options.quiet
             self.kernel_source = kernel_source
             self.warmed_up = False if self.dev.requires_warmup else True
-            self.simulation_mode = False
+            self.runner_mode = "Parallel"
             self.start_time = perf_counter()
             self.last_strategy_start_time = self.start_time
             self.last_strategy_time = 0
@@ -74,7 +74,7 @@ class ParallelRunner(Runner):
 
             result, func, to, instance = self.dev.compile(self.kernel_source, self.gpu_args, params, self.kernel_options, tuning_options)
         finally:
-            # Ensures removal of the cuda_context from the thread when compilation fails
+            # Ensures removal of the cuda_context from the thread if compilation fails
             if (self.cuda_context is not None):
                 self.cuda_context.pop()
 
