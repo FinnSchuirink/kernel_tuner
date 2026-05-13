@@ -62,7 +62,7 @@ class ParallelRunner(Runner):
     :param tuning_options: A dictionary with all options regarding the tuning process.
     :type tuning_options: kernel_tuner.interface.Options
 
-    :returns: 
+    :returns tuple of necessary information for benchmarking: 
     """
     def single_compilation(self, element, tuning_options):
         ## Copy cuda_context onto the thread
@@ -101,7 +101,7 @@ class ParallelRunner(Runner):
         warmup_time = 0
 
         # Results for the individual threads
-        future_results = {}
+        future_results = []
 
         # attempt to warmup the GPU by running the first config in the parameter space and ignoring the result
         if not self.warmed_up:
@@ -117,39 +117,37 @@ class ParallelRunner(Runner):
 
             # Queue all tasks
             for element in parameter_space:
-                future_results[(batch_executor.submit(self.single_compilation, element, tuning_options))] = element
-
-            # Choronologically collect results
-            for future_result in as_completed(future_results):
-
-                # Retrieve element back to map result to
-                element = future_results[future_result]
-                params = dict(zip(tuning_options.tune_params.keys(), element))
                 x_int = ",".join([str(i) for i in element])
-                result = None
 
                 # Check if result is already in the cache
                 if tuning_options.cache and x_int in tuning_options.cache:
+                    params = dict(zip(tuning_options.tune_params.keys(), element))
                     params.update(tuning_options.cache[x_int])
                     params['compile_time'] = 0
                     params['verification_time'] = 0
                     params['benchmark_time'] = 0
                 else:
-                    # Retrieve the result
-                    result, func, to, instance = future_result.result()
+                    future_results.append(batch_executor.submit(self.single_compilation, element, tuning_options))
 
-                    # Only benchmark if the compilation succeeded
-                    if func is not None:
-                        benchmark_result = self.dev.benchmark_kernel(instance, func, self.gpu_args, to, result)
+            # Collect results as they complete
+            for future_result in as_completed(future_results):
+                result = None
 
-                        # Save benchmark results
-                        result.update(benchmark_result)
+                # Retrieve the result
+                result, func, to, instance = future_result.result()
 
-                    # Map result to the parameter
-                    params.update(result)
+                # Only benchmark if the compilation succeeded
+                if func is not None:
+                    benchmark_result = self.dev.benchmark_kernel(instance, func, self.gpu_args, to, result)
 
-                    if tuning_options.objective in result and isinstance(result[tuning_options.objective], ErrorConfig):
-                        logging.debug('kernel configuration was skipped silently due to compile or runtime failure')
+                    # Save benchmark results
+                    result.update(benchmark_result)
+
+                # Map result to the parameter
+                params.update(result)
+
+                if tuning_options.objective in result and isinstance(result[tuning_options.objective], ErrorConfig):
+                    logging.debug('kernel configuration was skipped silently due to compile or runtime failure')
 
                 # only compute metrics on configs that have not errored
                 if tuning_options.metrics and not isinstance(params.get(tuning_options.objective), ErrorConfig):
