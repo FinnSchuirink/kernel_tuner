@@ -3,7 +3,7 @@ import logging
 import os
 from datetime import datetime, timezone
 from time import perf_counter
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed, wait
 
 from kernel_tuner.core import DeviceInterface
 from kernel_tuner.runners.runner import Runner
@@ -128,8 +128,11 @@ class ParallelRunner(Runner):
                     params['benchmark_time'] = 0
                 else:
                     future_results[batch_executor.submit(self.single_compilation, element, tuning_options)] = element
+            
+            ## Wait for all configurations to finish compiling
+            wait(future_results)
 
-            # Collect results as they complete
+            # Collect results as they were completed
             for future_result in as_completed(future_results):
                 result = None
                 element = future_results[future_result]
