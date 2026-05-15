@@ -10,7 +10,6 @@ from kernel_tuner.interface import Options
 from kernel_tuner.runners.parallel import ParallelRunner
 from kernel_tuner.runners.sequential import SequentialRunner
 
-
 def build(kernel_name, kernel_string, problem_size, args, tune_params, cmem_args):
     kernel_options = Options(
         kernel_name=kernel_name,

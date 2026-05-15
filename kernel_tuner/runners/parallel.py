@@ -101,7 +101,7 @@ class ParallelRunner(Runner):
         warmup_time = 0
 
         # Results for the individual threads
-        future_results = []
+        future_results = {}
 
         # attempt to warmup the GPU by running the first config in the parameter space and ignoring the result
         if not self.warmed_up:
@@ -127,11 +127,13 @@ class ParallelRunner(Runner):
                     params['verification_time'] = 0
                     params['benchmark_time'] = 0
                 else:
-                    future_results.append(batch_executor.submit(self.single_compilation, element, tuning_options))
+                    future_results[batch_executor.submit(self.single_compilation, element, tuning_options)] = element
 
             # Collect results as they complete
             for future_result in as_completed(future_results):
                 result = None
+                element = future_results[future_result]
+                params = dict(zip(tuning_options.tune_params.keys(), element))
 
                 # Retrieve the result
                 result, func, to, instance = future_result.result()
