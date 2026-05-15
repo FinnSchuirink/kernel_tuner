@@ -48,7 +48,7 @@ def verify_results(parallel_results: list, seq_results: list, tune_params: list)
         print("Solutions found are equal!")
     elif (abs(seq_best["time"] - parallel_best["time"]) < 0.01):
         ## Sequential evaluates solutions in order of submission, while parallel in order of completion
-        print("Different solutions were dound, but are equally optimal")
+        print("Different solutions were found, but are equally optimal")
     else:
         print("Solutions found are not equal!")
 
