@@ -151,7 +151,7 @@ class CudaFunctions(GPUBackend):
         :type kernel_string: string
 
         :returns self.func: A kernel that can be launched by the CUDA runtime
-        :rtype:
+        :rtype: cuda.CUfunction
 
         :returns buff: The binary of the CUDA kernel, to be saved in the cache.
         :rtype buff: bytes
@@ -206,6 +206,18 @@ class CudaFunctions(GPUBackend):
         return self.func, bytes(buff)
 
     def load_binary_to_kernel(self, binary, kernel_instance):
+        """Load the NVCUDA kernel from the cache binary, return the function
+        
+        :param binary: NVCUDA binary saved in the cache
+        :type binary: *.bin
+
+        :param kernel_instance: Kernel that can be retrieved from binary
+        type kernel_instance: KernelInstance
+
+        :returns func: A kernel that can be launched by the CUDA runtime
+        :rtype: cuda.CUfunction
+        
+        """
         logging.debug("Trying to load NVCUDA binary")
 
         try:

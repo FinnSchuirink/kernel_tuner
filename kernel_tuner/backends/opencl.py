@@ -122,6 +122,18 @@ class OpenCLFunctions(GPUBackend):
         return func, binary
     
     def load_binary_to_kernel(self, binary, kernel_instance):
+        """Load the OpenCL kernel from the cache binary, return the function
+        
+        :param binary: OpenCL binary saved in the cache
+        :type binary: *.bin
+
+        :param kernel_instance: Kernel that can be retrieved from binary
+        type kernel_instance: KernelInstance
+
+        :returns func: An OpenCL kernel that can be called directly.
+        :rtype func: pyopencl.Kernel
+        
+        """
         logging.debug("Trying to load OPENCL binary")
 
         try:

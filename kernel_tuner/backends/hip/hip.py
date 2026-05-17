@@ -195,6 +195,18 @@ class HipFunctions(GPUBackend):
         return kernel, bytes(code)
     
     def load_binary_to_kernel(self, binary, kernel_instance):
+        """Load the HIP kernel from the cache binary, return the function
+        
+        :param binary: HIP binary saved in the cache
+        :type binary: *.bin
+
+        :param kernel_instance: Kernel that can be retrieved from binary
+        type kernel_instance: KernelInstance
+
+        :returns func: A HIP kernel function that can be called.
+        :rtype func: hipFunction_t
+        
+        """
         logging.debug("Trying to load HIP binary")
 
         try:

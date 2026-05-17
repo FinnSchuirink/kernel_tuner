@@ -244,6 +244,18 @@ class PyCudaFunctions(GPUBackend):
                 raise e
     
     def load_binary_to_kernel(self, binary, kernel_instance):
+        """Load the PyCuda kernel from the cache binary, return the function.
+        
+        :param binary: PyCuda binary saved in the cache
+        :type binary: *.bin
+
+        :param kernel_instance: Kernel that can be retrieved from binary
+        type kernel_instance: KernelInstance
+
+        :returns func: An CUDA kernel that can be called directly.
+        :rtype func: pycuda.driver.Function
+
+        """
         logging.debug("Trying to load PYCUDA binary")
         try:
             ## Get module from saved binary
