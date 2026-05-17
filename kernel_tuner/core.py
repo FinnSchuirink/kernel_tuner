@@ -633,6 +633,7 @@ class DeviceInterface(object):
         return result
 
     def compile_kernel(self, instance, verbose):
+
         """Compile the kernel for this specific instance."""
         logging.debug("compile_kernel " + instance.name)
 
@@ -651,12 +652,12 @@ class DeviceInterface(object):
         compiled_binary = self.compilation_cache.get(cache_key)
         if (compiled_binary is not None):
             ## Load the binary 
-            logging.debug("Cache hit, loading binary!")
             func = self.dev.load_binary_to_kernel(binary=compiled_binary, kernel_instance=instance)
             if func is not None:
+                logging.info("Cache hit, loading binary!")
                 return func
         
-        logging.debug("Cache miss, recompiling binary!")
+        logging.info("Cache miss, recompiling binary!")
         
         # Compile kernel_string into device func
         func = None

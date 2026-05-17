@@ -125,10 +125,10 @@ class OpenCLFunctions(GPUBackend):
         """Load the OpenCL kernel from the cache binary, return the function
         
         :param binary: OpenCL binary saved in the cache
-        :type binary: *.bin
+        :type binary: bytes
 
         :param kernel_instance: Kernel that can be retrieved from binary
-        type kernel_instance: KernelInstance
+        :type kernel_instance: kernel_tuner.core.KernelInstance
 
         :returns func: An OpenCL kernel that can be called directly.
         :rtype func: pyopencl.Kernel

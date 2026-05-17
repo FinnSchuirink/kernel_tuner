@@ -319,19 +319,39 @@ class CompilerFunctions(CompilerBackend):
         return func, binary
     
     def load_binary_to_kernel(self, binary, kernel_instance):
+        """Load the C/FORTRAN kernel from the cache binary, return the function
+        
+        :param binary: C/FORTRAN binary saved in the cache
+        :type binary: bytes
+
+        :param kernel_instance: An object representing the specific instance of the tunable kernel
+            in the parameter space.
+        :type kernel_instance: kernel_tuner.core.KernelInstance
+
+        :returns: An ctypes function that can be called directly.
+        :rtype: ctypes._FuncPtr
+        
+        """
         logging.debug("Trying to load C, FORTRAN binary")
         try:
             ## Write binary to .so file
             with tempfile.NamedTemporaryFile(suffix=".so", delete=False) as f:
-                    f.write(binary)
-                    so_file_name = f.name
+                f.write(binary)
+                so_file_name = f.name
 
             ## Load shared library
             lib = C.CDLL(so_file_name)
 
-            ## Extract the function
-            func = getattr(lib, kernel_instance.name)
-            return func
+            ## Failsafe: Facilitate appended underscore in name mangling in FORTRAN compiler
+            func_names = [kernel_instance.name, kernel_instance.name + "_"]
+
+            for name in func_names:
+                ## Extract the function
+                try:
+                    func = getattr(lib, name)
+                    return func
+                except AttributeError:
+                    continue
         except Exception as e:
             logging.warning(f"_load_binary ([C, FORTRAN]): {e}")
             return None

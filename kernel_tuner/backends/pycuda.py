@@ -247,10 +247,10 @@ class PyCudaFunctions(GPUBackend):
         """Load the PyCuda kernel from the cache binary, return the function.
         
         :param binary: PyCuda binary saved in the cache
-        :type binary: *.bin
+        :type binary: bytes
 
         :param kernel_instance: Kernel that can be retrieved from binary
-        type kernel_instance: KernelInstance
+        :type kernel_instance: kernel_tuner.core.KernelInstance
 
         :returns func: An CUDA kernel that can be called directly.
         :rtype func: pycuda.driver.Function
@@ -267,6 +267,10 @@ class PyCudaFunctions(GPUBackend):
             ## Extract function
             func = self.current_module.get_function(kernel_instance.name)
             self.func = func
+
+            if not isinstance(self.func, str):
+                self.num_regs = self.func.num_regs
+                
             return func
         except Exception as e:
             logging.warning(f"_load_binary (PYCUDA): {e}")

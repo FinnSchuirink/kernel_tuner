@@ -209,10 +209,10 @@ class CudaFunctions(GPUBackend):
         """Load the NVCUDA kernel from the cache binary, return the function
         
         :param binary: NVCUDA binary saved in the cache
-        :type binary: *.bin
+        :type binary: bytes
 
         :param kernel_instance: Kernel that can be retrieved from binary
-        type kernel_instance: KernelInstance
+        :type kernel_instance: kernel_tuner.core.KernelInstance
 
         :returns func: A kernel that can be launched by the CUDA runtime
         :rtype: cuda.CUfunction
@@ -230,6 +230,12 @@ class CudaFunctions(GPUBackend):
             ## Extract function
             _, func = driver.cuModuleGetFunction(module, kernel_instance.name.encode())
             self.func = func
+
+            # get the number of registers per thread used in this kernel
+            num_regs = driver.cuFuncGetAttribute(driver.CUfunction_attribute.CU_FUNC_ATTRIBUTE_NUM_REGS, self.func)
+            assert num_regs[0] == 0, f"Retrieving number of registers per thread unsuccesful: code {num_regs[0]}"
+            self.num_regs = num_regs[1]
+            
             return func
         except Exception as e:
             logging.warning(f"_load_binary (NVCUDA): {e}")

@@ -136,17 +136,16 @@ class CupyFunctions(GPUBackend):
         self.func = self.current_module.get_function(kernel_name)
         self.num_regs = self.func.num_regs
         
-        ## FIXME: Return CuPY binary
         return self.func, None
 
     def load_binary_to_kernel(self, binary, kernel_instance):
         """Load the CUPY kernel from the cache binary, return the function
         
         :param binary: CUPY binary saved in the cache
-        :type binary: *.bin
+        :type binary: bytes
 
         :param kernel_instance: Kernel that can be retrieved from binary
-        type kernel_instance: KernelInstance
+        :type kernel_instance: kernel_tuner.core.KernelInstance
 
         :returns func: An CUDA kernel that can be called directly.
         :rtype: cupy.RawKernel
@@ -164,12 +163,13 @@ class CupyFunctions(GPUBackend):
             module = cp.RawModule(path=cubin_file_name)
 
             ## Update current module
-            self.dev.current_module = module
+            self.current_module = module
 
             ## Extract function
             func = module.get_function(kernel_instance.name)
-            self.dev.func = func
-            return func
+            self.func = func
+            self.num_regs = self.func.num_regs
+            return self.func
         except Exception as e:
             logging.warning(f"_load_binary (CUDA): {e}")
             return None

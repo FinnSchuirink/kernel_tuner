@@ -2,6 +2,9 @@ import numpy
 from kernel_tuner import tune_kernel
 import os
 import shutil
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 # Kernels ----------------------------------------------------------------------------------
 
@@ -38,7 +41,7 @@ __global__ void complex_transform(float *out, const float *a, const float *b, in
 """
 
 FORTRAN_KERNEL = """
-subroutine complex_transform(out, a, b, n) bind(C, name="complex_transform_")
+real(c_float) function complex_transform(out, a, b, n) bind(C, name="complex_transform_")
     use iso_c_binding
     implicit none
     integer(c_int), value :: n
@@ -56,14 +59,13 @@ subroutine complex_transform(out, a, b, n) bind(C, name="complex_transform_")
         v = v * 0.75 + x * 0.125 + y * 0.0625
         out(i) = v
     end do
-end subroutine complex_transform
+    complex_transform = 0.0
+end function complex_transform
 """
 
 # Constants --------------------------------------------------------------------------------
 
-CPU_TUNE_PARAMS = {"dummy_param": [1]}
-
-GPU_TUNE_PARAMS = {"block_size_x": [1, 2, 4, 8, 16]}
+TUNE_PARAMS = {"block_size_x": [1, 2, 4, 8, 16]}
 
 ITERATIONS = 1
 
@@ -96,8 +98,8 @@ def _print_statistics(lang, cold_cache_results, warm_cache_results):
         sum_cold += result.get('compile_time', 0)
 
     print(f"\n{lang} Results:")
-    print(f"    - Cold cache time: {sum_cold}s")
-    print(f"    - Warm caache time: {sum_warm}s")
+    print(f"    - Cold cache time: {sum_cold}ms")
+    print(f"    - Warm cache time: {sum_warm}ms")
     
     if (sum_warm == 0):
         print("    - Speedup: NaN, warm cache time == 0")
@@ -106,10 +108,10 @@ def _print_statistics(lang, cold_cache_results, warm_cache_results):
         print (f"    - Speedup: {speedup}x")
 
 def _run_kernel_pipeline_twice(tune_kwargs):
-    print("\nRunning cold cache build:")
+    logging.info("\nRunning cold cache build:")
     cold, _ = tune_kernel(**tune_kwargs)
 
-    print("\nRunning warm cache build:")
+    logging.info("\nRunning warm cache build:")
     warm, _ = tune_kernel(**tune_kwargs)
     return cold, warm
 
@@ -122,7 +124,7 @@ def _test_c_caching():
         kernel_source=C_KERNEL,
         problem_size=n,
         arguments=[c, a, b, n],
-        tune_params=CPU_TUNE_PARAMS, 
+        tune_params=TUNE_PARAMS, 
         lang="C",
         compiler="g++",
         compiler_options=["-O2"],
@@ -142,7 +144,7 @@ def _test_fortran_caching():
         kernel_source=FORTRAN_KERNEL,
         problem_size=n,
         arguments=[c, a, b, n],
-        tune_params=CPU_TUNE_PARAMS,
+        tune_params=TUNE_PARAMS,
         lang="FORTRAN",
         compiler="gfortran",
         compiler_options=["-O2"],
@@ -162,7 +164,7 @@ def _test_cuda_caching():
         kernel_source=CUDA_KERNEL,
         problem_size=n,
         arguments=[c, a, b, n],
-        tune_params=GPU_TUNE_PARAMS,
+        tune_params=TUNE_PARAMS,
         lang="CUDA",
         iterations=ITERATIONS,
         answer=[None, None, None, None],
@@ -180,7 +182,7 @@ def _test_cupy_caching():
         kernel_source=CUDA_KERNEL,
         problem_size=n,
         arguments =[c, a, b, n],
-        tune_params=GPU_TUNE_PARAMS,
+        tune_params=TUNE_PARAMS,
         lang="CUPY",
         iterations=ITERATIONS,
         answer=[None, None, None, None],
@@ -198,7 +200,7 @@ def _test_nvcuda_caching():
         kernel_source=CUDA_KERNEL,
         problem_size=n,
         arguments =[c, a, b, n],
-        tune_params=GPU_TUNE_PARAMS,
+        tune_params=TUNE_PARAMS,
         lang="NVCUDA",
         iterations=ITERATIONS,
         answer=[None, None, None, None],
@@ -216,7 +218,7 @@ def _test_hip_caching():
         kernel_source=CUDA_KERNEL,
         problem_size=n,
         arguments =[c, a, b, n],
-        tune_params=GPU_TUNE_PARAMS,
+        tune_params=TUNE_PARAMS,
         lang="HIP",
         iterations=ITERATIONS,
         answer=[None, None, None, None],
@@ -232,7 +234,7 @@ def main():
         "cuda": _test_cuda_caching,
         "cupy": _test_cupy_caching,
         "nvcuda": _test_nvcuda_caching,
-        ##"hip": _test_hip_caching,
+        #"hip": _test_hip_caching,
     }
     print("\n" + "=" * 70)
     print("Compilation cache efficiency test")

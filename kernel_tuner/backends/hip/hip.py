@@ -198,10 +198,10 @@ class HipFunctions(GPUBackend):
         """Load the HIP kernel from the cache binary, return the function
         
         :param binary: HIP binary saved in the cache
-        :type binary: *.bin
+        :type binary: bytes
 
         :param kernel_instance: Kernel that can be retrieved from binary
-        type kernel_instance: KernelInstance
+        :type kernel_instance: kernel_tuner.core.KernelInstance
 
         :returns func: A HIP kernel function that can be called.
         :rtype func: hipFunction_t
@@ -211,14 +211,15 @@ class HipFunctions(GPUBackend):
 
         try:
             ## Load HIP module
-            _, module = hip.hipModuleLoadData(binary)
+            module = hip_check(hip.hipModuleLoadData(binary))
 
             ## Update the current module
-            self.dev.current_module = module
+            self.current_module = module
 
             ## Extract the function
-            _, func = hip.hipModuleGetFunction(module, kernel_instance.name.encode())
-            self.dev.func = func
+            func = hip_check(hip.hipModuleGetFunction(module, kernel_instance.name.encode()))
+            
+            self.func = func
             return func
         except Exception as e:
             logging.warning(f"_load_binary (HIP): {e}")
