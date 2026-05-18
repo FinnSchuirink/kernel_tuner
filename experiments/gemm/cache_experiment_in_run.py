@@ -1,5 +1,5 @@
 import shutil
-from convolution_milo import tune
+from experiments.convolution_milo.convolution_milo import tune
 import os
 
 DEVICE = "NVIDIA GeForce GTX 1650"
