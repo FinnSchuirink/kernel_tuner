@@ -9,6 +9,7 @@ from kernel_tuner import core
 from kernel_tuner.interface import Options
 from kernel_tuner.runners.parallel import ParallelRunner
 from kernel_tuner.runners.sequential import SequentialRunner
+from kernel_tuner.file_utils import store_metadata_file, store_output_file
 
 def verify_results(parallel_results: list, seq_results: list, tune_params: list):
     """Check if both runner produce the same results to verify correctness.
@@ -96,7 +97,7 @@ def build(kernel_name, kernel_string, problem_size, args, tune_params, cmem_args
 def main():
 
     ## Read kernel string
-    with open('experiments/convolution_milo.cu', 'r') as f:
+    with open('convolution_milo/convolution_milo.cu', 'r') as f:
         kernel_string = f.read()
     kernel_name = "convolution_kernel"
     problem_size = (4096, 4096)
@@ -170,6 +171,12 @@ def main():
 
     print("\nSequential wall time: ", round(seq_wall, 3), "s")
     print("\nParallel wall time: ", round(parallel_wall, 3), "s")
+
+    store_output_file(f"experiment_results/sequential-results.json", seq_results, tune_params)
+    store_metadata_file(f"experiment_results/sequential-metadata.json")
+
+    store_output_file(f"experiment_results/parallel-results.json", parallel_results, tune_params)
+    store_metadata_file(f"experiment_results/parallel-metadata.json")
 
     verify_results(parallel_results, seq_results, tune_params)
 
