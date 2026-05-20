@@ -2,7 +2,7 @@ import shutil
 from experiments.convolution_milo.convolution_milo import tune
 import os
 
-DEVICE = "A100"
+DEVICE = "GTX1650"
 LANG = "CUDA"
 
 def _clear_cache(cache_dir="compilation_cache"):

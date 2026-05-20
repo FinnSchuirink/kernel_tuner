@@ -60,7 +60,7 @@ def tune(
     metrics = OrderedDict()
     metrics["GFLOP/s"] = lambda p: total_flops / (p["time"] / 1000.0)
 
-    base_cachepath = f"cachefiles/gemm_cache_experiment/{device_name.upper()}"
+    base_cachepath = f"cachefiles/{device_name.upper()}"
 
     # start tuning
     start = time.time()
