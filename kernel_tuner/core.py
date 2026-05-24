@@ -765,7 +765,10 @@ class DeviceInterface(object):
 
     def get_environment(self):
         """Return dictionary with information about the environment."""
-        return self.dev.env
+        env = self.dev.env
+        env["compilation_cache_stats"] = self.compilation_cache.log_stats()
+        return env
+    
 
     def memcpy_dtoh(self, dest, src):
         """Perform a device to host memory copy."""
