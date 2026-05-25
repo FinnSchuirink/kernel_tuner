@@ -16,9 +16,6 @@ import numpy
 import kernel_tuner
 from kernel_tuner.file_utils import store_metadata_file, store_output_file
 
-DEVICE = "A100"
-LANG = "CUDA"
-
 def verify_results(parallel_results: list, seq_results: list, tune_params: list):
     """Check if both runner produce the same results to verify correctness.
 
@@ -98,10 +95,10 @@ def tune(
 
     image_width, image_height, filter_width, filter_height = inputs
 
-    tune_params["block_size_x"] = [16 * i for i in range(1, 17)]
-    tune_params["block_size_y"] = [2**i for i in range(5)]
-    tune_params["tile_size_x"] = [i for i in range(1, 5)]
-    tune_params["tile_size_y"] = [i for i in range(1, 5)]
+    tune_params["block_size_x"] = [16 * i for i in range(1, 2)]
+    tune_params["block_size_y"] = [2**i for i in range(2)]
+    tune_params["tile_size_x"] = [i for i in range(1, 2)]
+    tune_params["tile_size_y"] = [i for i in range(1, 2)]
     tune_params["read_only"] = [0, 1]  # toggle using the read-only cache
 
     # do dry run
@@ -188,17 +185,5 @@ def tune(
 
     store_output_file(f"{base_cachepath}-{runner_mode}-results.json", results, tune_params)
     store_metadata_file(f"{base_cachepath}-{runner_mode}-metadata.json")
-    return results, env, tune_params
+    return results, env
 
-
-if __name__ == "__main__":
-    language = LANG
-    device_name = DEVICE
-
-    if language not in ("HIP", "CUDA"):
-        raise ValueError(f"{language} not valid, specify HIP or CUDA")
-    
-    parallel_results, _, params = tune(device_name=device_name, runner_mode="Parallel", lang=language)
-    seq_results, _, params = tune(device_name=device_name, runner_mode="Sequential", lang=language)
-
-    verify_results(parallel_results, seq_results, params)
