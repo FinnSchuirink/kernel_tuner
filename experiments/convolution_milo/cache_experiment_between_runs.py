@@ -118,7 +118,7 @@ def main():
 
         _remove_base_cache()
 
-        results, env, wall = _single_tune(True)
+        results, env, wall = _single_tune(use_compilation_cache=True)
         warm_stats.append(_extract_stats(results, env, wall))
 
     cold_aggregate = _run_N_times(cold_stats)
