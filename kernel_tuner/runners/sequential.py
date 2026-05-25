@@ -11,7 +11,7 @@ from kernel_tuner.util import ErrorConfig, print_config_output, process_metrics,
 class SequentialRunner(Runner):
     """SequentialRunner is used for tuning with a single process/thread."""
 
-    def __init__(self, kernel_source, kernel_options, device_options, iterations, observers):
+    def __init__(self, kernel_source, kernel_options, device_options, iterations, observers, compilation_cache_enabled):
         """Instantiate the SequentialRunner.
 
         :param kernel_source: The kernel source
@@ -29,7 +29,7 @@ class SequentialRunner(Runner):
         :type iterations: int
         """
         #detect language and create high-level device interface
-        self.dev = DeviceInterface(kernel_source, iterations=iterations, observers=observers, **device_options)
+        self.dev = DeviceInterface(kernel_source, compilation_cache_enabled=compilation_cache_enabled, iterations=iterations, observers=observers, **device_options)
 
         self.units = self.dev.units
         self.quiet = device_options.quiet

@@ -590,6 +590,7 @@ def tune_kernel(
     observers=None,
     objective=None,
     objective_higher_is_better=None,
+    compilation_cache_enabled=False,
 ):
     start_overhead_time = perf_counter()
     if log:
@@ -656,7 +657,7 @@ def tune_kernel(
     # select the runner for this job based on input
     selected_runner = SimulationRunner if simulation_mode else SequentialRunner
     tuning_options.simulated_time = 0
-    runner = selected_runner(kernelsource, kernel_options, device_options, iterations, observers)
+    runner = selected_runner(kernelsource, kernel_options, device_options, iterations, observers, compilation_cache_enabled)
 
     # the user-specified function may or may not have an optional atol argument;
     # we normalize it so that it always accepts atol.

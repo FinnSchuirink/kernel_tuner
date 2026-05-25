@@ -237,6 +237,7 @@ class DeviceInterface(object):
         compiler_options=None,
         iterations=7,
         observers=None,
+        compilation_cache_enabled=False,
     ):
         """Instantiate the DeviceInterface, based on language in kernel source.
 
@@ -330,6 +331,8 @@ class DeviceInterface(object):
             )
         self.dev = dev
 
+        self.compilation_cache_enabled = compilation_cache_enabled
+
         # look for NVMLObserver and TegraObserver in observers, if present, enable special tunable parameters through nvml/tegra
         self.use_nvml = False
         self.use_tegra = False
@@ -363,7 +366,9 @@ class DeviceInterface(object):
         self.name = dev.name
         self.max_threads = dev.max_threads
 
-        self.compilation_cache = CompilationCache()
+        if (self.compilation_cache_enabled):
+            self.compilation_cache = CompilationCache()
+
         self.compiler_options = compiler_options or []
 
         if not quiet:
@@ -637,27 +642,28 @@ class DeviceInterface(object):
         """Compile the kernel for this specific instance."""
         logging.debug("compile_kernel " + instance.name)
 
-        c_c = getattr(self.dev, "env", {}).get("compute_capability")
-        cuda_vers = getattr(self.dev, "env", {}).get("cuda_version")
+        if (self.compilation_cache_enabled):
+            c_c = getattr(self.dev, "env", {}).get("compute_capability")
+            cuda_vers = getattr(self.dev, "env", {}).get("cuda_version")
 
-        cache_key = CompilationCache.make_cache_key(
-            kernel_string=instance.kernel_string,
-            backend=self.lang,
-            device=self.dev.name,
-            flags=self.compiler_options,
-            cuda_version= str(cuda_vers),
-            cc=str(c_c)
-        )
+            cache_key = CompilationCache.make_cache_key(
+                kernel_string=instance.kernel_string,
+                backend=self.lang,
+                device=self.dev.name,
+                flags=self.compiler_options,
+                cuda_version= str(cuda_vers),
+                cc=str(c_c)
+            )
 
-        compiled_binary = self.compilation_cache.get(cache_key)
-        if (compiled_binary is not None):
-            ## Load the binary 
-            func = self.dev.load_binary_to_kernel(binary=compiled_binary, kernel_instance=instance)
-            if func is not None:
-                logging.info("Cache hit, loading binary!")
-                return func
+            compiled_binary = self.compilation_cache.get(cache_key)
+            if (compiled_binary is not None):
+                ## Load the binary 
+                func = self.dev.load_binary_to_kernel(binary=compiled_binary, kernel_instance=instance)
+                if func is not None:
+                    logging.info("Cache hit, loading binary!")
+                    return func
         
-        logging.info("Cache miss, recompiling binary!")
+            logging.info("Cache miss, recompiling binary!")
         
         # Compile kernel_string into device func
         func = None
@@ -686,7 +692,7 @@ class DeviceInterface(object):
                 print("compile_kernel failed due to error: " + error_message)
                 print("Error while compiling:", instance.name)
                 raise e
-        if func is not None and binary is not None:
+        if self.compilation_cache_enabled and func is not None and binary is not None:
                 logging.debug(f"Saving {instance.name} to cache, to avoid recompilation")
                 self.compilation_cache.put(
                     key=cache_key,
@@ -766,7 +772,10 @@ class DeviceInterface(object):
     def get_environment(self):
         """Return dictionary with information about the environment."""
         env = self.dev.env
-        env["compilation_cache_stats"] = self.compilation_cache.log_stats()
+        
+        if (self.compilation_cache_enabled):
+            env["compilation_cache_stats"] = self.compilation_cache.log_stats()
+            
         return env
     
 

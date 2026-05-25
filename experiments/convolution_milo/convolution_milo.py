@@ -38,6 +38,7 @@ def tune(
     quiet=False,
     simulation_mode=False,
     lang="CUDA",
+    compilation_cache_enabled=False,
 ):
     if lang == "CUDA":
         kernel_file = "/convolution_milo.cu"
@@ -138,6 +139,7 @@ def tune(
         strategy=strategy,
         strategy_options=strategy_options,
         simulation_mode=simulation_mode,
+        compilation_cache_enabled=compilation_cache_enabled,
     )
     end = time.time()
     env["execution_time"] = end - start

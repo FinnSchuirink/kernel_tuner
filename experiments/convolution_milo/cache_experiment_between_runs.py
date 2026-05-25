@@ -9,6 +9,7 @@ DEVICE = "GTX1650"
 LANG = "CUDA"
 NUM_ITERATIONS = 5
 RESULTS_LOC = f"results/cache_experiment_between_runs_{DEVICE}_{LANG}.json"
+PYCACHE = "__pycache__"
 
 def _clear_cache(cache_dir="compilation_cache"):
     if (os.path.exists(cache_dir)):
@@ -23,10 +24,12 @@ def _remove_base_cache():
         file = base + s
         if (os.path.exists(file)):
             os.remove(file)
+    if (os.path.exists(PYCACHE)):
+        shutil.rmtree(PYCACHE)
 
-def _single_tune():
+def _single_tune(use_compilation_cache: bool):
     start = time.perf_counter()
-    results, env = tune(device_name=DEVICE, lang=LANG, verbose=False, quiet=True)
+    results, env = tune(device_name=DEVICE, lang=LANG, verbose=False, quiet=True, compilation_cache_enabled=use_compilation_cache)
     wall = time.perf_counter() - start
     return results, env, wall
 
@@ -110,12 +113,12 @@ def main():
 
     for i in range(NUM_ITERATIONS):
         _clear_cache()
-        results, env, wall = _single_tune()
+        results, env, wall = _single_tune(use_compilation_cache=True)
         cold_stats.append(_extract_stats(results, env, wall))
 
         _remove_base_cache()
 
-        results, env, wall = _single_tune()
+        results, env, wall = _single_tune(True)
         warm_stats.append(_extract_stats(results, env, wall))
 
     cold_aggregate = _run_N_times(cold_stats)
