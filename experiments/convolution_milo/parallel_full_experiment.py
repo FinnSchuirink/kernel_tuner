@@ -5,7 +5,7 @@ import time
 import json
 import numpy as np
 
-DEVICE = "GTX1650"
+DEVICE = "A5000-Ada"
 LANG = "CUDA"
 NUM_ITERATIONS = 5
 RESULTS_LOC = f"results/parallel_results_{DEVICE}_{LANG}.json"

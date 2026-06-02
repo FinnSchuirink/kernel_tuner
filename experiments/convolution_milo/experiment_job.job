@@ -1,0 +1,21 @@
+#SBATCH --ntasks-per-node=1 # Number of tasks per node
+#SBATCH --gres=gpu:A4000-Ada:1 # Number of GPUs per node
+#SBATCH --time=00:15:00 # Do not exceed 15 minutes!
+
+module load python/3.10
+module load cuda/11.8
+
+# Create virtual environment if needed
+if [ ! -d "venv" ]; then
+    python -m venv venv
+fi
+
+source venv/bin/activate
+
+# Install dependencies
+pip install --quiet kernel_tuner numpy
+
+# Run your experiment
+python parallel_full_experiment.py
+
+echo "Experiment completed at $(date)"
