@@ -4,15 +4,16 @@ import os
 import time
 import json
 import numpy as np
+import random
 
-DEVICE = "A5000-Ada"
+DEVICE = "A4000-Ada"
 LANG = "CUDA"
-NUM_ITERATIONS = 5
+NUM_ITERATIONS = 10
 RESULTS_LOC = f"results/parallel_results_{DEVICE}_{LANG}.json"
 PYCACHE = "__pycache__"
 
 def _remove_base_cache():
-    base = f"cachefiles/{DEVICE}"
+    base = f"cachefiles/convolution_milo/{DEVICE.upper()}"
     suffix = [".json", "-results.json", "-metadata.json"]
     for s in suffix:
         file = base + s
@@ -78,12 +79,14 @@ def _run_N_times(stats: list[dict]):
 
     return aggregate
 
-def _calculate_speedup(seq_mean, parallel_mean):
-    if seq_mean == 0:
-        return float("NaN"), float("NaN")
+def _calculate_speedup(seq_stats, parallel_stats):
+    def ratio(a, b):
+        return a / b if b > 0 else float("NaN")
     
-    speedup = seq_mean / parallel_mean
-    return speedup
+    return {
+        "wallclock": ratio(seq_stats["total_wallclock_mean"], parallel_stats["total_wallclock_mean"]),
+        "compile": ratio(seq_stats["total_compile_mean"], parallel_stats["total_compile_mean"])
+    }
 
 
 def _save_results(seq: list, parallel: list):
@@ -93,9 +96,9 @@ def _save_results(seq: list, parallel: list):
             {
                 "device": DEVICE,
                 "language": LANG,
-                "cold": seq,
-                "warm": parallel,
-                "speedup": _calculate_speedup(seq["total_compile_mean"], parallel["total_compile_mean"])
+                "sequential": seq,
+                "parallel": parallel,
+                "speedup": _calculate_speedup(seq, parallel)
             }, 
             f,
             indent=2
@@ -103,17 +106,22 @@ def _save_results(seq: list, parallel: list):
 
 
 def main():
-    sequential_stats, parallel_stats = [], []
+    sequential_stats = []
+    parallel_stats = []
 
     for i in range(NUM_ITERATIONS):
-        _remove_base_cache()
-        
-        ## SEQUENTIAL
-        results, env, wall = _single_tune(runner_mode="Sequential")
-        sequential_stats.append(_extract_stats(results, env, wall))
+        ## Randomize runner order
+        runners = ["Sequential, Parallel"]
+        random.shuffle(runners)
 
-        ## PARALLEL
-        results, env, wall = _single_tune(runner_mode="Parallel")
+        iter_results = {}
+        for runner in runners:
+            _remove_base_cache()
+
+            results, env, wall = _single_tune(runner_mode=runner)
+            iter_results[runner] = _extract_stats(results, env, wall)
+
+        sequential_stats.append(_extract_stats(results, env, wall))
         parallel_stats.append(_extract_stats(results, env, wall))
 
     sequential_aggregate = _run_N_times(sequential_stats)
