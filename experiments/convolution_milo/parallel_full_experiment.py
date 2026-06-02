@@ -58,7 +58,7 @@ def _extract_stats(results, env, wall_time):
         "cache_hits": cache_hits,
     }
 
-def _run_N_times(stats: list[dict]):
+def _run_N_times(stats):
     keys = [
         "total_compile",
         "total_benchmark",
@@ -89,7 +89,7 @@ def _calculate_speedup(seq_stats, parallel_stats):
     }
 
 
-def _save_results(seq: list, parallel: list):
+def _save_results(seq, parallel):
     os.makedirs(os.path.dirname(RESULTS_LOC), exist_ok=True)
     with open(RESULTS_LOC, "w") as f:
         json.dump(
