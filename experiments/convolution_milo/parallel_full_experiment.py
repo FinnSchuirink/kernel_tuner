@@ -23,9 +23,9 @@ def _remove_base_cache():
     if (os.path.exists(PYCACHE)):
         shutil.rmtree(PYCACHE)
 
-def _single_tune(runner_mode):
+def _single_tune(runner_mode, num_threads):
     start = time.perf_counter()
-    results, env = tune(device_name=DEVICE, lang=LANG, verbose=False, quiet=True, runner_mode=runner_mode)
+    results, env = tune(device_name=DEVICE, lang=LANG, verbose=False, quiet=True, runner_mode=runner_mode, strategy_options={"num_threads": num_threads})
     wall = time.perf_counter() - start
     return results, env, wall
 

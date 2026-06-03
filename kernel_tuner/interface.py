@@ -674,6 +674,7 @@ def tune_kernel(
             selected_runner = ParallelRunner
 
     tuning_options.simulated_time = 0
+    num_threads = None
     runner = selected_runner(kernelsource, kernel_options, device_options, iterations, observers)
 
     # the user-specified function may or may not have an optional atol argument;
