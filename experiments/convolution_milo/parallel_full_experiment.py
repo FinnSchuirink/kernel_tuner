@@ -9,6 +9,7 @@ import random
 DEVICE = "A4000-Ada"
 LANG = "CUDA"
 NUM_ITERATIONS = 25
+NUM_THREADS = 2
 RESULTS_LOC = f"results/parallel_results_{DEVICE}_{LANG}.json"
 PYCACHE = "__pycache__"
 
@@ -77,11 +78,12 @@ def _calculate_speedup(seq_stats, parallel_stats):
     }
 
 
-def _save_results(seq, parallel):
+def _save_results(seq, parallel, num_threads):
     os.makedirs(os.path.dirname(RESULTS_LOC), exist_ok=True)
     with open(RESULTS_LOC, "w") as f:
         json.dump(
             {
+                "Num_threads": num_threads,
                 "device": DEVICE,
                 "language": LANG,
                 "sequential": seq,
@@ -97,8 +99,7 @@ def main():
     sequential_stats = []
     parallel_stats = []
 
-    for num_threads in num_threads
-    for i in range(NUM_ITERATIONS):
+    for _ in range(NUM_ITERATIONS):
         ## Randomize runner order
         runners = ["Sequential", "Parallel"]
         random.shuffle(runners)
@@ -107,7 +108,7 @@ def main():
         for runner in runners:
             _remove_base_cache()
 
-            results, env, wall = _single_tune(runner_mode=runner)
+            env, wall = _single_tune(runner_mode=runner)
             iter_results[runner] = _extract_stats(env, wall, runner)
 
         sequential_stats.append(iter_results["Sequential"])
@@ -116,7 +117,7 @@ def main():
     sequential_aggregate = _run_N_times(sequential_stats)
     parallel_aggregate = _run_N_times(parallel_stats)
 
-    _save_results(sequential_aggregate, parallel_aggregate)
+    _save_results(sequential_aggregate, parallel_aggregate, NUM_THREADS)
 
 
 main()
