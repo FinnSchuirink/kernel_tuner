@@ -9,7 +9,7 @@ import random
 DEVICE = "A4000-Ada"
 LANG = "CUDA"
 NUM_ITERATIONS = 25
-NUM_THREADS = 2
+NUM_THREADS = [1, 2, 4, 8, 16, 32]
 RESULTS_LOC = f"results/parallel_results_{DEVICE}_{LANG}.json"
 PYCACHE = "__pycache__"
 
@@ -78,17 +78,14 @@ def _calculate_speedup(seq_stats, parallel_stats):
     }
 
 
-def _save_results(seq, parallel, num_threads):
+def _save_results(threaded_results):
     os.makedirs(os.path.dirname(RESULTS_LOC), exist_ok=True)
     with open(RESULTS_LOC, "w") as f:
         json.dump(
             {
-                "Num_threads": num_threads,
                 "device": DEVICE,
                 "language": LANG,
-                "sequential": seq,
-                "parallel": parallel,
-                "speedup": _calculate_speedup(seq, parallel)
+                "results": threaded_results,
             },
             f,
             indent=2
@@ -96,28 +93,39 @@ def _save_results(seq, parallel, num_threads):
 
 
 def main():
-    sequential_stats = []
-    parallel_stats = []
+    threaded_results = {}
 
-    for _ in range(NUM_ITERATIONS):
-        ## Randomize runner order
-        runners = ["Sequential", "Parallel"]
-        random.shuffle(runners)
+    for num_threads in NUM_THREADS:
+        sequential_stats = []
+        parallel_stats = []
 
-        iter_results = {}
-        for runner in runners:
-            _remove_base_cache()
+        for _ in range(NUM_ITERATIONS):
 
-            env, wall = _single_tune(runner_mode=runner)
-            iter_results[runner] = _extract_stats(env, wall, runner)
+            ## Randomize runner order
+            runners = ["Sequential", "Parallel"]
+            random.shuffle(runners)
 
-        sequential_stats.append(iter_results["Sequential"])
-        parallel_stats.append(iter_results["Parallel"])
+            iter_results = {}
+            for runner in runners:
+                _remove_base_cache()
 
-    sequential_aggregate = _run_N_times(sequential_stats)
-    parallel_aggregate = _run_N_times(parallel_stats)
+                _, env, wall = _single_tune(runner_mode=runner, num_threads=num_threads)
+                iter_results[runner] = _extract_stats(env, wall, runner)
 
-    _save_results(sequential_aggregate, parallel_aggregate, NUM_THREADS)
+            sequential_stats.append(iter_results["Sequential"])
+            parallel_stats.append(iter_results["Parallel"])
+
+        sequential_aggregate = _run_N_times(sequential_stats)
+        parallel_aggregate = _run_N_times(parallel_stats)
+    
+        threaded_results[num_threads] = {
+            "NUM_THREADS": num_threads,
+            "Sequential": sequential_aggregate,
+            "Parallel": parallel_aggregate,
+            "Speedup": _calculate_speedup(sequential_aggregate, parallel_aggregate)
+        }
+
+    _save_results(threaded_results)
 
 
 main()

@@ -47,6 +47,7 @@ class ParallelRunner(Runner):
             self.last_strategy_start_time = self.start_time
             self.last_strategy_time = 0
             self.kernel_options = kernel_options
+            self.num_threads = device_options.get("num_threads", None)
 
             #move data to the GPU
             self.gpu_args = self.dev.ready_argument_list(kernel_options.arguments)
@@ -115,8 +116,10 @@ class ParallelRunner(Runner):
             warmup_time = 1e3 * (perf_counter() - warmup_time)
 
         # iterate over parameter space using thread pool
+        max_workers = self.num_threads if self.num_threads is not None else os.cpu_count()
+
         compile_wall_start = perf_counter()
-        with ThreadPoolExecutor(max_workers=os.cpu_count()) as batch_executor:
+        with ThreadPoolExecutor(max_workers=max_workers) as batch_executor:
 
             # Queue all tasks
             for element in parameter_space:

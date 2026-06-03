@@ -526,6 +526,13 @@ _device_options = Options(
                 "list(string)",
             ),
         ),
+        (
+            "num_threads",
+            (
+                """The amount of threads to be used for parallelism""",
+                "int",
+            ),
+        ),
     ]
 )
 
@@ -627,7 +634,9 @@ def tune_kernel(
         if "time_limit" in strategy_options:
             tuning_options["time_limit"] = strategy_options["time_limit"] 
         if "searchspace_construction_options" in strategy_options:
-            searchspace_construction_options = strategy_options["searchspace_construction_options"]         
+            searchspace_construction_options = strategy_options["searchspace_construction_options"]   
+        if runner_mode == "Parallel" and strategy_options and "num_threads" in strategy_options:
+            device_options["num_threads"] = strategy_options["num_threads"]
 
     # log the user inputs
     logging.debug("tune_kernel called")
