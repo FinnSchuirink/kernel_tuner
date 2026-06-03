@@ -8,14 +8,19 @@ import random
 
 DEVICE = "A4000-Ada"
 LANG = "CUDA"
-NUM_ITERATIONS = 25
+NUM_ITERATIONS = 1
 NUM_THREADS = [1, 2, 4, 8, 16, 32]
 RESULTS_LOC = f"results/parallel_results_{DEVICE}_{LANG}.json"
 PYCACHE = "__pycache__"
 
 def _remove_base_cache():
     base = f"cachefiles/convolution_milo/{DEVICE.upper()}"
-    suffix = [".json", "-results.json", "-metadata.json"]
+    suffix = [".json", 
+              "Sequential-results.json", 
+              "Parallel-results.json",
+              "Sequential-metadata.json",
+              "Parallel-metadata.json", 
+            ]
     for s in suffix:
         file = base + s
         if (os.path.exists(file)):
@@ -25,7 +30,7 @@ def _remove_base_cache():
 
 def _single_tune(runner_mode, num_threads):
     start = time.perf_counter()
-    results, env = tune(device_name=DEVICE, lang=LANG, verbose=False, quiet=True, runner_mode=runner_mode, strategy_options={"num_threads": num_threads})
+    results, env = tune(device_name=DEVICE, lang=LANG, verbose=False, quiet=True, runner_mode=runner_mode, num_threads=num_threads)
     wall = time.perf_counter() - start
     return results, env, wall
 
