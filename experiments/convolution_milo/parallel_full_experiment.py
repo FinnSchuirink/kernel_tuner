@@ -39,7 +39,7 @@ def _extract_stats(env, wall_time, runner_mode):
     total_benchmark = env["total_benchmark_time"] / 1000.0
     total_framework = env["total_framework_time"] / 1000.0
     total_strategy = env["total_strategy_time"] / 1000.0
-    total_overhead = env["overhead_time"] / 1000.0
+    total_overhead = wall_time - total_compile - total_benchmark - total_framework - total_strategy
 
     return {
         "total_compile": total_compile,
