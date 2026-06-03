@@ -50,9 +50,12 @@ class ParallelRunner(Runner):
 
             #move data to the GPU
             self.gpu_args = self.dev.ready_argument_list(kernel_options.arguments)
+            self.wall_compile_time = 0
 
     def get_environment(self, tuning_options):
-        return self.dev.get_environment()
+        env = self.dev.get_environment()
+        env["wall_compile_time"] = self.wall_compile_time
+        return env
     
     """
 
@@ -113,6 +116,7 @@ class ParallelRunner(Runner):
             warmup_time = 1e3 * (perf_counter() - warmup_time)
 
         # iterate over parameter space using thread pool
+        compile_wall_start = perf_counter()
         with ThreadPoolExecutor(max_workers=os.cpu_count()) as batch_executor:
 
             # Queue all tasks
@@ -131,6 +135,7 @@ class ParallelRunner(Runner):
             
             ## Wait for all configurations to finish compiling
             wait(future_results)
+            self.wall_compile_time = 1000 * (perf_counter() - compile_wall_start)
 
             # Collect results as they were completed
             for future_result in as_completed(future_results):

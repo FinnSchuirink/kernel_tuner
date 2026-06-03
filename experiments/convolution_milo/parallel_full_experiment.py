@@ -28,19 +28,16 @@ def _single_tune(runner_mode: str):
     wall = time.perf_counter() - start
     return results, env, wall
 
-def _extract_stats(results, env, wall_time):
-    total_compile = env["total_compile_time"] / 1000.0
+def _extract_stats(results, env, wall_time, runner_mode):
+    total_compile = env["total_compile_time"] / 1000.0 if runner_mode == "Sequential" else env["wall_compile_time"]
     total_benchmark = env["total_benchmark_time"] / 1000.0
     total_framework = env["total_framework_time"] / 1000.0
     total_strategy = env["total_strategy_time"] / 1000.0
     total_overhead = env["overhead_time"] / 1000.0
 
-    cache_stats = env["compilation_cache_stats"]
-    cache_hits = cache_stats.get("hits")
-
-    individual_compile_times = []
-    for r in results:
-        individual_compile_times.append(r.get("compile_time"))
+    ##individual_compile_times = []
+    ##for r in results:
+        ##individual_compile_times.append(r.get("compile_time"))
     
     return {
         "total_compile": total_compile,
@@ -52,10 +49,8 @@ def _extract_stats(results, env, wall_time):
         "total_wallclock": wall_time,
         "compile_fraction": total_compile / wall_time if wall_time > 0 else float("NaN"),
 
-        "individual_compile_times": individual_compile_times,
-
-        "n_configs": len(results),
-        "cache_hits": cache_hits,
+        ##"individual_compile_times": individual_compile_times,
+        ##"n_configs": len(results),
     }
 
 def _run_N_times(stats):
@@ -75,7 +70,7 @@ def _run_N_times(stats):
         for stat in stats:
             values.append(stat[key])
         aggregate[f"{key}_mean"] = np.mean(values)
-        aggregate[f"{key}_std.dev"] = np.std(values, ddof = 1)
+        aggregate[f"{key}_std.dev"] = np.std(values, ddof = 1 if len(values) > 1 else float("NaN"))
 
     return aggregate
 
