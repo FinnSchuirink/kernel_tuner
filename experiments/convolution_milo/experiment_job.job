@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --ntasks-per-node=32
 #SBATCH --gres=gpu:A4000-Ada:1
-#SBATCH --time=00:15:00
+#SBATCH --time=12:00:00
 #SBATCH --job-name=kernel_tuner_parallel_exp
 #SBATCH --output=logs/%j_parallel_exp.out
 #SBATCH --error=logs/%j_parallel_exp.err
@@ -14,7 +14,7 @@ mkdir -p logs results cachefiles/convolution_milo
 # Correct CUDA module name
 module load cuda12.1/toolkit/12.1
 
-# Use YOUR local kernel_tuner, not the system one
+# Use local kernel_tuner
 export PYTHONPATH=/home/fschuiri/Scriptie/kernel_tuner:$PYTHONPATH
 
 python3.12 parallel_full_experiment.py
