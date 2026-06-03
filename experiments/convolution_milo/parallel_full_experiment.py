@@ -9,7 +9,7 @@ import random
 DEVICE = "A4000-Ada"
 LANG = "CUDA"
 NUM_ITERATIONS = 1
-NUM_THREADS = [1, 2, 4, 8, 16, 32]
+NUM_THREADS = [1, 2, 4, 8, 16, 32, 64, 128]
 RESULTS_LOC = f"results/parallel_results_{DEVICE}_{LANG}.json"
 PYCACHE = "__pycache__"
 
