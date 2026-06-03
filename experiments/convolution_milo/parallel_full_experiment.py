@@ -111,7 +111,7 @@ def main():
 
     for i in range(NUM_ITERATIONS):
         ## Randomize runner order
-        runners = ["Sequential, Parallel"]
+        runners = ["Sequential", "Parallel"]
         random.shuffle(runners)
 
         iter_results = {}
@@ -121,8 +121,8 @@ def main():
             results, env, wall = _single_tune(runner_mode=runner)
             iter_results[runner] = _extract_stats(results, env, wall)
 
-        sequential_stats.append(_extract_stats(results, env, wall))
-        parallel_stats.append(_extract_stats(results, env, wall))
+        sequential_stats.append(iter_results["Sequential"])
+        parallel_stats.append(iter_results["Parallel"])
 
     sequential_aggregate = _run_N_times(sequential_stats)
     parallel_aggregate = _run_N_times(parallel_stats)
