@@ -22,7 +22,7 @@ def _remove_base_cache():
     if (os.path.exists(PYCACHE)):
         shutil.rmtree(PYCACHE)
 
-def _single_tune(runner_mode: bool):
+def _single_tune(runner_mode: str):
     start = time.perf_counter()
     results, env = tune(device_name=DEVICE, lang=LANG, verbose=False, quiet=True, runner_mode=runner_mode)
     wall = time.perf_counter() - start
