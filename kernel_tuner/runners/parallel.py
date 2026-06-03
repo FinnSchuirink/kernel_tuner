@@ -32,7 +32,7 @@ class ParallelRunner(Runner):
 
             self.cuda_context = None
             # Save current CUDA context to be pushed to threads later
-            try: 
+            try:
                 import pycuda.driver as drv
                 self.cuda_context = drv.Context.get_current()
             except:
@@ -56,7 +56,6 @@ class ParallelRunner(Runner):
         env = self.dev.get_environment()
         env["wall_compile_time"] = self.wall_compile_time
         return env
-    
     """
 
     :param element: The current configuration inside the parameter space currently being observed
@@ -65,7 +64,7 @@ class ParallelRunner(Runner):
     :param tuning_options: A dictionary with all options regarding the tuning process.
     :type tuning_options: kernel_tuner.interface.Options
 
-    :returns tuple of necessary information for benchmarking: 
+    :returns tuple of necessary information for benchmarking:
     """
     def single_compilation(self, element, tuning_options):
         ## Copy cuda_context onto the thread
@@ -132,10 +131,10 @@ class ParallelRunner(Runner):
                     params['benchmark_time'] = 0
                 else:
                     future_results[batch_executor.submit(self.single_compilation, element, tuning_options)] = element
-            
+
             ## Wait for all configurations to finish compiling
             wait(future_results)
-            self.wall_compile_time = 1000 * (perf_counter() - compile_wall_start)
+            self.wall_compile_time = perf_counter() - compile_wall_start
 
             # Collect results as they were completed
             for future_result in as_completed(future_results):
@@ -164,9 +163,9 @@ class ParallelRunner(Runner):
                     params = process_metrics(params, tuning_options.metrics)
 
                 # get the framework time by estimating based on other times
-                total_time = 1000 * ((perf_counter() - self.start_time) - warmup_time) 
+                total_time = 1000 * ((perf_counter() - self.start_time) - warmup_time)
                 params['strategy_time'] = self.last_strategy_time
-                params['framework_time'] = max(total_time - (params['compile_time'] + params['verification_time'] + params['benchmark_time'] + params['strategy_time']), 0)
+                params['framework_time'] = max(total_time - (params['compile_time'] + params['verification_time'] + params['benchmark_time'] + params['strategy_time']), 0)   
                 params['timestamp'] = str(datetime.now(timezone.utc))
                 self.start_time = perf_counter()
 

@@ -8,7 +8,7 @@ import random
 
 DEVICE = "A4000-Ada"
 LANG = "CUDA"
-NUM_ITERATIONS = 10
+NUM_ITERATIONS = 25
 RESULTS_LOC = f"results/parallel_results_{DEVICE}_{LANG}.json"
 PYCACHE = "__pycache__"
 
@@ -22,23 +22,19 @@ def _remove_base_cache():
     if (os.path.exists(PYCACHE)):
         shutil.rmtree(PYCACHE)
 
-def _single_tune(runner_mode: str):
+def _single_tune(runner_mode):
     start = time.perf_counter()
     results, env = tune(device_name=DEVICE, lang=LANG, verbose=False, quiet=True, runner_mode=runner_mode)
     wall = time.perf_counter() - start
     return results, env, wall
 
-def _extract_stats(results, env, wall_time, runner_mode):
+def _extract_stats(env, wall_time, runner_mode):
     total_compile = env["total_compile_time"] / 1000.0 if runner_mode == "Sequential" else env["wall_compile_time"]
     total_benchmark = env["total_benchmark_time"] / 1000.0
     total_framework = env["total_framework_time"] / 1000.0
     total_strategy = env["total_strategy_time"] / 1000.0
     total_overhead = env["overhead_time"] / 1000.0
 
-    ##individual_compile_times = []
-    ##for r in results:
-        ##individual_compile_times.append(r.get("compile_time"))
-    
     return {
         "total_compile": total_compile,
         "total_benchmark": total_benchmark,
@@ -48,10 +44,7 @@ def _extract_stats(results, env, wall_time, runner_mode):
 
         "total_wallclock": wall_time,
         "compile_fraction": total_compile / wall_time if wall_time > 0 else float("NaN"),
-
-        ##"individual_compile_times": individual_compile_times,
-        ##"n_configs": len(results),
-    }
+       }
 
 def _run_N_times(stats):
     keys = [
@@ -77,7 +70,7 @@ def _run_N_times(stats):
 def _calculate_speedup(seq_stats, parallel_stats):
     def ratio(a, b):
         return a / b if b > 0 else float("NaN")
-    
+
     return {
         "wallclock": ratio(seq_stats["total_wallclock_mean"], parallel_stats["total_wallclock_mean"]),
         "compile": ratio(seq_stats["total_compile_mean"], parallel_stats["total_compile_mean"])
@@ -94,7 +87,7 @@ def _save_results(seq, parallel):
                 "sequential": seq,
                 "parallel": parallel,
                 "speedup": _calculate_speedup(seq, parallel)
-            }, 
+            },
             f,
             indent=2
         )
@@ -104,6 +97,7 @@ def main():
     sequential_stats = []
     parallel_stats = []
 
+    for num_threads in num_threads
     for i in range(NUM_ITERATIONS):
         ## Randomize runner order
         runners = ["Sequential", "Parallel"]
@@ -114,7 +108,7 @@ def main():
             _remove_base_cache()
 
             results, env, wall = _single_tune(runner_mode=runner)
-            iter_results[runner] = _extract_stats(results, env, wall)
+            iter_results[runner] = _extract_stats(env, wall, runner)
 
         sequential_stats.append(iter_results["Sequential"])
         parallel_stats.append(iter_results["Parallel"])
