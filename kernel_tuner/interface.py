@@ -526,13 +526,6 @@ _device_options = Options(
                 "list(string)",
             ),
         ),
-        (
-            "num_threads",
-            (
-                """The amount of threads to be used for parallelism""",
-                "int",
-            ),
-        ),
     ]
 )
 
@@ -598,6 +591,7 @@ def tune_kernel(
     observers=None,
     objective=None,
     objective_higher_is_better=None,
+    num_threads=None,
 ):
     start_overhead_time = perf_counter()
     if log:
@@ -635,8 +629,6 @@ def tune_kernel(
             tuning_options["time_limit"] = strategy_options["time_limit"] 
         if "searchspace_construction_options" in strategy_options:
             searchspace_construction_options = strategy_options["searchspace_construction_options"]   
-        if runner_mode == "Parallel" and strategy_options and "num_threads" in strategy_options:
-            device_options["num_threads"] = strategy_options["num_threads"]
 
     # log the user inputs
     logging.debug("tune_kernel called")
@@ -674,8 +666,7 @@ def tune_kernel(
             selected_runner = ParallelRunner
 
     tuning_options.simulated_time = 0
-    num_threads = None
-    runner = selected_runner(kernelsource, kernel_options, device_options, iterations, observers)
+    runner = selected_runner(kernelsource, kernel_options, device_options, iterations, observers, num_threads)
 
     # the user-specified function may or may not have an optional atol argument;
     # we normalize it so that it always accepts atol.

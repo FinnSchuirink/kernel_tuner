@@ -11,7 +11,7 @@ from kernel_tuner.util import ErrorConfig, print_config_output, process_metrics,
 class SequentialRunner(Runner):
     """SequentialRunner is used for tuning with a single process/thread."""
 
-    def __init__(self, kernel_source, kernel_options, device_options, iterations, observers):
+    def __init__(self, kernel_source, kernel_options, device_options, iterations, observers, num_threads=None):
         """Instantiate the SequentialRunner.
 
         :param kernel_source: The kernel source

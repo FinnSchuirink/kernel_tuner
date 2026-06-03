@@ -10,7 +10,7 @@ from kernel_tuner.runners.runner import Runner
 from kernel_tuner.util import ErrorConfig, print_config_output, process_metrics, store_cache
 
 class ParallelRunner(Runner):
-    def __init__(self, kernel_source, kernel_options, device_options, iterations, observers):
+    def __init__(self, kernel_source, kernel_options, device_options, iterations, observers, num_threads):
             """Instantiate the ParallelRunner.
 
             :param kernel_source: The kernel source
@@ -47,7 +47,7 @@ class ParallelRunner(Runner):
             self.last_strategy_start_time = self.start_time
             self.last_strategy_time = 0
             self.kernel_options = kernel_options
-            self.num_threads = device_options.get("num_threads", None)
+            self.num_threads = num_threads
 
             #move data to the GPU
             self.gpu_args = self.dev.ready_argument_list(kernel_options.arguments)
