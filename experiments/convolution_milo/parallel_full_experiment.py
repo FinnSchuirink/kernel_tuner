@@ -107,8 +107,8 @@ def main():
         sequential_stats = []
         parallel_stats = []
 
-        for _ in range(NUM_ITERATIONS):
-
+        for i in range(NUM_ITERATIONS):
+            print(f"Iteration {i + 1}/{NUM_ITERATIONS}", flush = True)
             ## Randomize runner order
             runners = ["Sequential", "Parallel"]
             random.shuffle(runners)
