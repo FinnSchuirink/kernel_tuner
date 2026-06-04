@@ -15,21 +15,12 @@ PYCACHE = "__pycache__"
 BENCHMARK_CACHE = "convolution_milo.json"
 
 def _remove_base_cache():
-    base = f"cachefiles/convolution_milo/{DEVICE.upper()}"
-    suffix = [".json", 
-              "Sequential-results.json", 
-              "Parallel-results.json",
-              "Sequential-metadata.json",
-              "Parallel-metadata.json", 
-            ]
-    for s in suffix:
-        file = base + s
-        if (os.path.exists(file)):
-            os.remove(file)
+    if (os.path.exists("cachefiles")):
+        shutil.rmtree("cahcefiles")
     if (os.path.exists(PYCACHE)):
         shutil.rmtree(PYCACHE)
     if (os.path.exists(BENCHMARK_CACHE)):
-        shutil.rmtree(BENCHMARK_CACHE)
+        os.remove(BENCHMARK_CACHE)
 
 def _single_tune(runner_mode, num_threads):
     start = time.perf_counter()
