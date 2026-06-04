@@ -1,5 +1,5 @@
 import shutil
-from experiments.convolution_milo.convolution_milo import tune
+from experiments.pnpoly.pnpoly import tune
 import os
 import time
 import json
@@ -11,6 +11,7 @@ NUM_ITERATIONS = 1
 RESULTS_LOC = f"results/cache_experiment_in_run_{DEVICE}_{LANG}.json"
 PYCACHE = "__pycache__"
 COMPILATION_CACHE_DIR = "compilation_cache"
+BENCHMARK_CACHE = "pnpoly.json"
 
 def _clear_cache():
     if (os.path.exists(COMPILATION_CACHE_DIR)):
@@ -27,6 +28,9 @@ def _remove_base_cache():
             os.remove(file)
     if (os.path.exists(PYCACHE)):
         shutil.rmtree(PYCACHE)
+    if (os.path.exists(BENCHMARK_CACHE)):
+        shutil.rmtree(BENCHMARK_CACHE)
+    
 
 def _single_tune(use_compilation_cache: bool):
     start = time.perf_counter()

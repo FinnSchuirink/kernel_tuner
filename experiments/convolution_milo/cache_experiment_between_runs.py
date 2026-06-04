@@ -11,6 +11,7 @@ NUM_ITERATIONS = 25
 RESULTS_LOC = f"results/cache_experiment_between_runs_{DEVICE}_{LANG}.json"
 PYCACHE = "__pycache__"
 COMPILATION_CACHE_DIR = "compilation_cache"
+BENCHMARK_CACHE = "convolution_milo.json"
 
 def _clear_cache():
     if (os.path.exists(COMPILATION_CACHE_DIR)):
@@ -27,8 +28,10 @@ def _remove_base_cache():
             os.remove(file)
     if (os.path.exists(PYCACHE)):
         shutil.rmtree(PYCACHE)
+    if (os.path.exists(BENCHMARK_CACHE)):
+        shutil.rmtree(BENCHMARK_CACHE)
 
-def _single_tune(use_compilation_cache: bool):
+def _single_tune(use_compilation_cache):
     start = time.perf_counter()
     results, env = tune(device_name=DEVICE, lang=LANG, verbose=False, quiet=True, compilation_cache_enabled=use_compilation_cache)
     wall = time.perf_counter() - start
