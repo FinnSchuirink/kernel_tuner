@@ -5,20 +5,21 @@ import time
 import json
 import numpy as np
 
-DEVICE = "GTX1650"
+DEVICE = "A4000-Ada"
 LANG = "CUDA"
-NUM_ITERATIONS = 5
-RESULTS_LOC = f"results/cache_experiment_between_runs_{DEVICE}_{LANG}.json"
+NUM_ITERATIONS = 25
+RESULTS_LOC = f"results/cache_experiment_in_run_{DEVICE}_{LANG}.json"
 PYCACHE = "__pycache__"
+COMPILATION_CACHE_DIR = "compilation_cache"
 
-def _clear_cache(cache_dir="compilation_cache"):
-    if (os.path.exists(cache_dir)):
-        shutil.rmtree(cache_dir)
+def _clear_cache():
+    if (os.path.exists(COMPILATION_CACHE_DIR)):
+        shutil.rmtree(COMPILATION_CACHE_DIR)
     _remove_base_cache()
 
 
 def _remove_base_cache():
-    base = f"cachefiles/{DEVICE}"
+    base = f"cachefiles/{DEVICE.upper()}"
     suffix = [".json", "-results.json", "-metadata.json"]
     for s in suffix:
         file = base + s
@@ -27,7 +28,7 @@ def _remove_base_cache():
     if (os.path.exists(PYCACHE)):
         shutil.rmtree(PYCACHE)
 
-def _single_tune(use_compilation_cache):
+def _single_tune(use_compilation_cache: bool):
     start = time.perf_counter()
     results, env = tune(device_name=DEVICE, lang=LANG, verbose=False, quiet=True, compilation_cache_enabled=use_compilation_cache)
     wall = time.perf_counter() - start
@@ -40,12 +41,13 @@ def _extract_stats(results, env, wall_time):
     total_strategy = env["total_strategy_time"] / 1000.0
     total_overhead = env["overhead_time"] / 1000.0
 
-    cache_stats = env["compilation_cache_stats"]
-    cache_hits = cache_stats.get("hits")
+    cache_stats = env.get("compilation_cache_stats", {})
+    cache_hits = cache_stats.get("hits", 0)
+    cache_misses = cache_stats.get("misses", 0)
 
     individual_compile_times = []
     for r in results:
-        individual_compile_times.append(r.get("compile_time"))
+        individual_compile_times.append(r["compile_time"])
     
     return {
         "total_compile": total_compile,
@@ -61,6 +63,7 @@ def _extract_stats(results, env, wall_time):
 
         "n_configs": len(results),
         "cache_hits": cache_hits,
+        "cache_misses": cache_misses,
     }
 
 def _run_N_times(stats: list[dict]):
@@ -72,6 +75,9 @@ def _run_N_times(stats: list[dict]):
         "total_overhead",
         "total_wallclock",
         "compile_fraction",
+        "cache_hits",
+        "cache_misses",
+        "n_configs",
     ]
     aggregate = {}
 
@@ -80,28 +86,30 @@ def _run_N_times(stats: list[dict]):
         for stat in stats:
             values.append(stat[key])
         aggregate[f"{key}_mean"] = np.mean(values)
-        aggregate[f"{key}_std.dev"] = np.std(values, ddof = 1)
-
+        aggregate[f"{key}_std.dev"] = np.std(values, ddof = 1 if len(values) > 1 else float("NaN"))
+    
     return aggregate
 
-def _calculate_speedup(disabled_cache, enabled_cache):
-    if enabled_cache == 0:
-        return float("NaN"), float("NaN")
+def _calculate_speedup(cold, warm):
+    def ratio(a, b):
+        return a / b if b > 0 else float("NaN")
     
-    speedup = disabled_cache / enabled_cache
-    return speedup
+    return {
+        "wallclock": ratio(cold["total_wallclock_mean"], warm["total_wallclock_mean"]),
+        "compile": ratio(cold["total_compile_mean"], warm["total_compile_mean"])
+    }
 
 
-def _save_results(disabled_cache: list, enabled_cache: list):
+def _save_results(no_cache, cache):
     os.makedirs(os.path.dirname(RESULTS_LOC), exist_ok=True)
     with open(RESULTS_LOC, "w") as f:
         json.dump(
             {
                 "device": DEVICE,
                 "language": LANG,
-                "cacheless": disabled_cache,
-                "cached": enabled_cache,
-                "speedup": _calculate_speedup(disabled_cache["total_compile_mean"], enabled_cache["total_compile_mean"])
+                "no_cache": no_cache,
+                "warm": cache,
+                "speedup_no_cache_vs_cache": _calculate_speedup(no_cache, cache),
             }, 
             f,
             indent=2
@@ -109,22 +117,24 @@ def _save_results(disabled_cache: list, enabled_cache: list):
 
 
 def main():
-    cacheless_stats, cached_stats = [], []
+    cache_stats, no_cache_stats = [], []
 
     for i in range(NUM_ITERATIONS):
+        print(f"Iteration {i + 1}/{NUM_ITERATIONS}", flush=True)
+        ## No cache
         _clear_cache()
         results, env, wall = _single_tune(use_compilation_cache=False)
-        cacheless_stats.append(_extract_stats(results, env, wall))
+        no_cache_stats.append(_extract_stats(results, env, wall))
 
-        _remove_base_cache()
-
+        ## Cache
+        _clear_cache()
         results, env, wall = _single_tune(use_compilation_cache=True)
-        cached_stats.append(_extract_stats(results, env, wall))
+        cache_stats.append(_extract_stats(results, env, wall))
 
-    cacheless_aggregate = _run_N_times(cacheless_stats)
-    cached_aggregate = _run_N_times(cached_stats)
+    no_cache_aggregate = _run_N_times(no_cache_stats)
+    cache_aggregate = _run_N_times(cache_stats)
 
-    _save_results(cacheless_aggregate, cached_aggregate)
+    _save_results(no_cache_aggregate, cache_aggregate)
 
 
 main()
