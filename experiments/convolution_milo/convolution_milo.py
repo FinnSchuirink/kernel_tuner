@@ -55,10 +55,10 @@ def tune(
 
     image_width, image_height, filter_width, filter_height = inputs
 
-    tune_params["block_size_x"] = [16 * i for i in range(1, 2)]
-    tune_params["block_size_y"] = [2**i for i in range(2)]
-    tune_params["tile_size_x"] = [i for i in range(1, 2)]
-    tune_params["tile_size_y"] = [i for i in range(1, 2)]
+    tune_params["block_size_x"] = [16 * i for i in range(1, 17)]
+    tune_params["block_size_y"] = [2**i for i in range(5)]
+    tune_params["tile_size_x"] = [i for i in range(1, 5)]
+    tune_params["tile_size_y"] = [i for i in range(1, 5)]
     tune_params["read_only"] = [0, 1]  # toggle using the read-only cache
 
     # do dry run

@@ -7,7 +7,7 @@ import numpy as np
 
 DEVICE = "A4000-Ada"
 LANG = "CUDA"
-NUM_ITERATIONS = 5
+NUM_ITERATIONS = 25
 RESULTS_LOC = f"results/cache_experiment_between_runs_{DEVICE}_{LANG}.json"
 PYCACHE = "__pycache__"
 COMPILATION_CACHE_DIR = "compilation_cache"
@@ -123,7 +123,7 @@ def main():
     cold_stats, warm_stats, no_cache_stats = [], [], []
 
     for i in range(NUM_ITERATIONS):
-
+        print(f"Iteration {i + 1}/{NUM_ITERATIONS}")
         ## No cache
         _clear_cache()
         results, env, wall = _single_tune(use_compilation_cache=False)
