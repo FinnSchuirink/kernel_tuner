@@ -77,6 +77,7 @@ def _run_N_times(stats: list[dict]):
         "compile_fraction",
         "cache_hits",
         "cache_misses",
+        "n_configs",
     ]
     aggregate = {}
 
@@ -85,9 +86,8 @@ def _run_N_times(stats: list[dict]):
         for stat in stats:
             values.append(stat[key])
         aggregate[f"{key}_mean"] = np.mean(values)
-        aggregate[f"{key}_std.dev"] = np.std(values, ddof = 1)
+        aggregate[f"{key}_std.dev"] = np.std(values, ddof = 1 if len(values) > 1 else float("NaN"))
     
-
     return aggregate
 
 def _calculate_speedup(cold, warm):
@@ -107,6 +107,7 @@ def _save_results(no_cache, cold, warm):
             {
                 "device": DEVICE,
                 "language": LANG,
+                "no_cache": no_cache,
                 "cold": cold,
                 "warm": warm,
                 "speedup_no_vs cold": _calculate_speedup(no_cache, cold),

@@ -272,7 +272,7 @@ class DeviceInterface(object):
 
         """
         lang = kernel_source.lang
-        self.requires_warmup = True
+        self.requires_warmup = False
 
         logging.debug("DeviceInterface instantiated, lang=%s", lang)
 
