@@ -123,7 +123,7 @@ def main():
     cold_stats, warm_stats, no_cache_stats = [], [], []
 
     for i in range(NUM_ITERATIONS):
-        print(f"Iteration {i + 1}/{NUM_ITERATIONS}")
+        print(f"Iteration {i + 1}/{NUM_ITERATIONS}", flush=True)
         ## No cache
         _clear_cache()
         results, env, wall = _single_tune(use_compilation_cache=False)
