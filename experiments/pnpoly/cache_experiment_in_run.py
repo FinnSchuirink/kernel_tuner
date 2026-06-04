@@ -7,7 +7,7 @@ import numpy as np
 
 DEVICE = "A4000-Ada"
 LANG = "CUDA"
-NUM_ITERATIONS = 25
+NUM_ITERATIONS = 1
 RESULTS_LOC = f"results/cache_experiment_in_run_{DEVICE}_{LANG}.json"
 PYCACHE = "__pycache__"
 COMPILATION_CACHE_DIR = "compilation_cache"

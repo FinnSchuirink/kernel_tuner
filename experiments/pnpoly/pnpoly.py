@@ -37,7 +37,7 @@ import kernel_tuner
 def tune():
 
     # set the number of points and the number of vertices
-    size = np.int32(2e7)
+    size = np.int32(1e5)
     problem_size = (size, 1)
     vertices = 600
 
@@ -62,8 +62,8 @@ def tune():
 
     # setup tunable parameters
     tune_params = {}
-    tune_params["block_size_x"] = [32*i for i in range(1,2)]  #multiple of 32
-    tune_params["tile_size"] = [1] + [2*i for i in range(1,2)]
+    tune_params["block_size_x"] = [32]  #multiple of 32
+    tune_params["tile_size"] = [1] + [2]
     tune_params["between_method"] = [0, 1]
     tune_params["use_method"] = [0, 1]
     tune_params["loop_unroll_factor_v"] = [0] + [i for i in range(1, 4) if vertices % i == 0]
@@ -73,9 +73,9 @@ def tune():
 
     # start tuning
     results, env = kernel_tuner.tune_kernel("cn_pnpoly", 'pnpoly.cu', problem_size, args, tune_params, grid_div_x=grid_div_x, cmem_args=c_mem,
-                    verbose=True, strategy="random_sample", cache="pnpoly_cache.json")
+                    verbose=True, strategy="random_sample", cache="pnpoly_cache.json", strategy_options={"max_fevals": 5}, iterations=3)
 
-    return results
+    return results, env
 
 
 if __name__ == "__main__":
