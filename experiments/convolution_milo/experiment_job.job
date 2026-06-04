@@ -3,8 +3,8 @@
 #SBATCH --gres=gpu:A4000-Ada:1
 #SBATCH --time=12:00:00
 #SBATCH --job-name=kernel_tuner_cache_exp
-#SBATCH --output=logs/%j_parallel_exp.out
-#SBATCH --error=logs/%j_parallel_exp.err
+#SBATCH --output=logs/%j_cache_exp.out
+#SBATCH --error=logs/%j_cache_exp.err
 
 . /etc/bashrc
 . /etc/profile.d/lmod.sh
