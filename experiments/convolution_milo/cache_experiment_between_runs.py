@@ -41,9 +41,9 @@ def _extract_stats(results, env, wall_time):
     total_strategy = env["total_strategy_time"] / 1000.0
     total_overhead = env["overhead_time"] / 1000.0
 
-    cache_stats = env["compilation_cache_stats"]
-    cache_hits = cache_stats["hits"]
-    cache_misses = cache_stats["misses"]
+    cache_stats = env.get("compilation_cache_stats", 0)
+    cache_hits = cache_stats.get("hits", 0)
+    cache_misses = cache_stats.get("misses", 0)
 
     individual_compile_times = []
     for r in results:
