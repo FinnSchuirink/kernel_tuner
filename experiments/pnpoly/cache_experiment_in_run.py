@@ -34,7 +34,7 @@ def _remove_base_cache():
 
 def _single_tune(use_compilation_cache: bool):
     start = time.perf_counter()
-    results, env = tune(device_name=DEVICE, lang=LANG, verbose=False, quiet=True, compilation_cache_enabled=use_compilation_cache)
+    results, env = tune(compilation_cache_enabled=use_compilation_cache)
     wall = time.perf_counter() - start
     return results, env, wall
 
