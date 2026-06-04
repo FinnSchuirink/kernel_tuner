@@ -29,7 +29,7 @@ def _remove_base_cache():
     if (os.path.exists(PYCACHE)):
         shutil.rmtree(PYCACHE)
     if (os.path.exists(BENCHMARK_CACHE)):
-        shutil.rmtree(BENCHMARK_CACHE)
+        os.remove(BENCHMARK_CACHE)
     
 
 def _single_tune(use_compilation_cache: bool):
