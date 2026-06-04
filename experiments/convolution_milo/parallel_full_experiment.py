@@ -15,8 +15,11 @@ PYCACHE = "__pycache__"
 BENCHMARK_CACHE = "convolution_milo.json"
 
 def _remove_base_cache():
-    if (os.path.exists("cachefiles")):
-        shutil.rmtree("cahcefiles")
+    base = f"cachefiles/convolution_milo/{DEVICE.upper()}"
+    for suffix in [".json", "-results.json", "-metadata.json"]:
+        path = base + suffix
+        if (os.path.exists(path)):
+            os.remove(path)
     if (os.path.exists(PYCACHE)):
         shutil.rmtree(PYCACHE)
     if (os.path.exists(BENCHMARK_CACHE)):
@@ -29,7 +32,7 @@ def _single_tune(runner_mode, num_threads):
     return results, env, wall
 
 def _extract_stats(env, wall_time, runner_mode):
-    total_compile = env["total_compile_time"] / 1000.0 if runner_mode == "Sequential" else env["wall_compile_time"]
+    total_compile = env["total_compile_time"] / 1000.0 if runner_mode == "Sequential" else env["wall_compile_time"] / 1000.0
     total_benchmark = env["total_benchmark_time"] / 1000.0
     total_framework = env["total_framework_time"] / 1000.0
     total_strategy = env["total_strategy_time"] / 1000.0
@@ -62,8 +65,10 @@ def _run_N_times(stats):
         values = []
         for stat in stats:
             values.append(stat[key])
-        aggregate[f"{key}_mean"] = np.mean(values)
-        aggregate[f"{key}_std.dev"] = np.std(values, ddof = 1 if len(values) > 1 else float("NaN"))
+        aggregate[f"{key}_mean"] = float(np.mean(values))
+        aggregate[f"{key}_std.dev"] = (
+            float(np.std(values, ddof = 1)) if len(values) > 1 else float("NaN")
+        )
 
     return aggregate
 
