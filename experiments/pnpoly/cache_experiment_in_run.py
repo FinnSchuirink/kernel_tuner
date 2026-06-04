@@ -20,12 +20,8 @@ def _clear_cache():
 
 
 def _remove_base_cache():
-    base = f"cachefiles/{DEVICE.upper()}"
-    suffix = [".json", "-results.json", "-metadata.json"]
-    for s in suffix:
-        file = base + s
-        if (os.path.exists(file)):
-            os.remove(file)
+    if (os.path.exists("cachefiles")):
+        shutil.rmtree("cachefiles")
     if (os.path.exists(PYCACHE)):
         shutil.rmtree(PYCACHE)
     if (os.path.exists(BENCHMARK_CACHE)):
