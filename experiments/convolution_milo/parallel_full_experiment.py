@@ -12,6 +12,7 @@ NUM_ITERATIONS = 10
 NUM_THREADS = [1, 2, 4, 8, 16, 32, 64, 128]
 RESULTS_LOC = f"results/parallel_results_{DEVICE}_{LANG}.json"
 PYCACHE = "__pycache__"
+BENCHMARK_CACHE = "convolution_milo.json"
 
 def _remove_base_cache():
     base = f"cachefiles/convolution_milo/{DEVICE.upper()}"
@@ -27,6 +28,8 @@ def _remove_base_cache():
             os.remove(file)
     if (os.path.exists(PYCACHE)):
         shutil.rmtree(PYCACHE)
+    if (os.path.exists(BENCHMARK_CACHE)):
+        shutil.rmtree(BENCHMARK_CACHE)
 
 def _single_tune(runner_mode, num_threads):
     start = time.perf_counter()
