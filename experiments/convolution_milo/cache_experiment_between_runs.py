@@ -11,7 +11,7 @@ NUM_ITERATIONS = 25
 RESULTS_LOC = f"results/cache_experiment_between_runs_{DEVICE}_{LANG}.json"
 PYCACHE = "__pycache__"
 COMPILATION_CACHE_DIR = "compilation_cache"
-BENCHMARK_CACHE = "convolution_milo.json"
+BENCHMARK_CACHE = "pnpoly_cache.json"
 
 def _clear_cache():
     if (os.path.exists(COMPILATION_CACHE_DIR)):

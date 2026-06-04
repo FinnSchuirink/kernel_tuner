@@ -11,7 +11,7 @@ NUM_ITERATIONS = 1
 RESULTS_LOC = f"results/cache_experiment_in_run_{DEVICE}_{LANG}.json"
 PYCACHE = "__pycache__"
 COMPILATION_CACHE_DIR = "compilation_cache"
-BENCHMARK_CACHE = "pnpoly.json"
+BENCHMARK_CACHE = "pnpoly_cache.json"
 
 def _clear_cache():
     if (os.path.exists(COMPILATION_CACHE_DIR)):
