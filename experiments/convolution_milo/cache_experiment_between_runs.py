@@ -20,8 +20,11 @@ def _clear_cache():
 
 
 def _remove_base_cache():
-    if (os.path.exists("cachefiles")):
-        shutil.rmtree("cachefiles")
+    base = f"cachefiles/{DEVICE.upper()}"
+    for suffix in [".json", "-results.json", "-metadata.json"]:
+        path = base + suffix
+        if (os.path.exists(path)):
+            os.remove(path)
     if (os.path.exists(PYCACHE)):
         shutil.rmtree(PYCACHE)
     if (os.path.exists(BENCHMARK_CACHE)):
@@ -84,8 +87,8 @@ def _run_N_times(stats: list[dict]):
         values = []
         for stat in stats:
             values.append(stat[key])
-        aggregate[f"{key}_mean"] = np.mean(values)
-        aggregate[f"{key}_std.dev"] = np.std(values, ddof = 1 if len(values) > 1 else float("NaN"))
+        aggregate[f"{key}_mean"] = float(np.mean(values))
+        aggregate[f"{key}_std.dev"] = (float(np.std(values, ddof = 1)) if len(values) > 1 else float("NaN"))
     
     return aggregate
 
