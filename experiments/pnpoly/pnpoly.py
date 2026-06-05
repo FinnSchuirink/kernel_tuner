@@ -1,12 +1,4 @@
 #!/usr/bin/env python
-
-###########################################################################################################
-#                                                                                                         #
-#                     This file belongs to Ben van Werkhoven, all rights are reserved                     #
-#          Link: https://github.com/benvanwerkhoven/benchmark_kernels/blob/finn/pnpoly/pnpoly.cu          #
-#                                                                                                         #
-###########################################################################################################
-
 """ Point-in-Polygon host/device code tuner
 
 This program is used for auto-tuning the host and device code of a CUDA program
@@ -34,10 +26,10 @@ import numpy as np
 import kernel_tuner
 
 
-def tune(compilation_cache_enabled=False):
+def tune():
 
     # set the number of points and the number of vertices
-    size = np.int32(1e5)
+    size = np.int32(2e7)
     problem_size = (size, 1)
     vertices = 600
 
@@ -62,20 +54,20 @@ def tune(compilation_cache_enabled=False):
 
     # setup tunable parameters
     tune_params = {}
-    tune_params["block_size_x"] = [32]  #multiple of 32
-    tune_params["tile_size"] = [1] + [2]
-    tune_params["between_method"] = [0, 1]
+    tune_params["block_size_x"] = [32*i for i in range(1,33)]  #multiple of 32
+    tune_params["tile_size"] = [1] + [2*i for i in range(1,11)]
+    tune_params["between_method"] = [0, 1, 2, 3]
     tune_params["use_method"] = [0, 1]
-    tune_params["loop_unroll_factor_v"] = [0] + [i for i in range(1, 4) if vertices % i == 0]
+    tune_params["loop_unroll_factor_v"] = [0] + [i for i in range(1, vertices+1) if vertices % i == 0]
 
     # tell Kernel Tuner how to compute the grid dimensions from the problem_size
     grid_div_x = ["block_size_x", "tile_size"]
 
     # start tuning
     results, env = kernel_tuner.tune_kernel("cn_pnpoly", 'pnpoly.cu', problem_size, args, tune_params, grid_div_x=grid_div_x, cmem_args=c_mem,
-                    verbose=True, strategy="random_sample", cache="pnpoly_cache.json", strategy_options={"max_fevals": 5}, iterations=3, compilation_cache_enabled=compilation_cache_enabled)
+                    verbose=True, strategy="random_sample", cache="pnpoly_cache.json")
 
-    return results, env
+    return results
 
 
 if __name__ == "__main__":

@@ -7,8 +7,9 @@ import numpy as np
 
 DEVICE = "A4000-Ada"
 LANG = "CUDA"
-NUM_ITERATIONS = 25
+NUM_ITERATIONS = 10
 RESULTS_LOC = f"results/cache_experiment_between_runs_{DEVICE}_{LANG}.json"
+RESULTS_ITER_LOC = f"results/iter_results/caching/cache_results_between_runs.json"
 PYCACHE = "__pycache__"
 COMPILATION_CACHE_DIR = "compilation_cache"
 BENCHMARK_CACHE = "pnpoly_cache.json"
@@ -112,7 +113,7 @@ def _save_results(no_cache, cold, warm):
                 "no_cache": no_cache,
                 "cold": cold,
                 "warm": warm,
-                "speedup_no_vs cold": _calculate_speedup(no_cache, cold),
+                "speedup_no_vs_cold": _calculate_speedup(no_cache, cold),
                 "speedup_no_vs_warm": _calculate_speedup(no_cache, warm),
                 "speedup_cold_vs_warm": _calculate_speedup(cold, warm)
             }, 
@@ -120,12 +121,32 @@ def _save_results(no_cache, cold, warm):
             indent=2
         )
 
+def _save_iter_results(iteration, iter_no_cache_results, iter_cold_cache_results, iter_warm_cache_results):
+    os.makedirs(os.path.dirname(RESULTS_ITER_LOC), exist_ok=True)
+
+    with open(RESULTS_ITER_LOC, "w") as f:
+        json.dump(
+        {
+            "Iteration": iteration,
+            "no_cache": iter_no_cache_results,
+            "cold": iter_cold_cache_results,
+            "warm": iter_warm_cache_results,
+            "speedup_no_vs_cold": _calculate_speedup(iter_no_cache_results, iter_cold_cache_results),
+            "speedup_no_vs_warm": _calculate_speedup(iter_no_cache_results, iter_warm_cache_results),
+            "speedup_cold_vs_warm": _calculate_speedup(iter_cold_cache_results, iter_warm_cache_results)
+        },
+        f,
+        indent=2
+    )
+
 
 def main():
     cold_stats, warm_stats, no_cache_stats = [], [], []
+    no_cache_aggregate, cold_aggregate, warm_aggregate = {}, {}, {}
 
     for i in range(NUM_ITERATIONS):
         print(f"Iteration {i + 1}/{NUM_ITERATIONS}", flush=True)
+
         ## No cache
         _clear_cache()
         results, env, wall = _single_tune(use_compilation_cache=False)
@@ -141,9 +162,11 @@ def main():
         results, env, wall = _single_tune(use_compilation_cache=True)
         warm_stats.append(_extract_stats(results, env, wall))
 
-    no_cache_aggregate = _run_N_times(no_cache_stats)
-    cold_aggregate = _run_N_times(cold_stats)
-    warm_aggregate = _run_N_times(warm_stats)
+        no_cache_aggregate = _run_N_times(no_cache_stats)
+        cold_aggregate = _run_N_times(cold_stats)
+        warm_aggregate = _run_N_times(warm_stats)
+
+        _save_iter_results(i + 1, no_cache_aggregate, cold_aggregate, warm_aggregate)
 
     _save_results(no_cache_aggregate, cold_aggregate, warm_aggregate)
 

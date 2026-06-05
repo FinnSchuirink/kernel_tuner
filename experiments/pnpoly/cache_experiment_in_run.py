@@ -5,10 +5,11 @@ import time
 import json
 import numpy as np
 
-DEVICE = "A4000-Ada"
-LANG = "CUDA"
-NUM_ITERATIONS = 1
-RESULTS_LOC = f"results/cache_experiment_in_run_{DEVICE}_{LANG}.json"
+NUM_ITERATIONS = 10
+
+RESULTS_LOC = f"results/cache_experiment_in_run.json"
+RESULTS_ITER_LOC = f"results/iter_results/caching/cache_results_in_run.json"
+
 PYCACHE = "__pycache__"
 COMPILATION_CACHE_DIR = "compilation_cache"
 BENCHMARK_CACHE = "pnpoly_cache.json"
@@ -85,8 +86,8 @@ def _run_N_times(stats: list[dict]):
         values = []
         for stat in stats:
             values.append(stat[key])
-        aggregate[f"{key}_mean"] = np.mean(values)
-        aggregate[f"{key}_std.dev"] = np.std(values, ddof = 1 if len(values) > 1 else float("NaN"))
+        aggregate[f"{key}_mean"] = float(np.mean(values))
+        aggregate[f"{key}_std.dev"] = float(np.std(values, ddof = 1)) if len(values) > 1 else float("NaN")
     
     return aggregate
 
@@ -105,8 +106,6 @@ def _save_results(no_cache, cache):
     with open(RESULTS_LOC, "w") as f:
         json.dump(
             {
-                "device": DEVICE,
-                "language": LANG,
                 "no_cache": no_cache,
                 "warm": cache,
                 "speedup_no_cache_vs_cache": _calculate_speedup(no_cache, cache),
@@ -115,9 +114,24 @@ def _save_results(no_cache, cache):
             indent=2
         )
 
+def _save_iter_results(iteration, iter_no_cache_results, iter_cache_results):
+    os.makedirs(os.path.dirname(RESULTS_ITER_LOC), exist_ok=True)
+
+    with open(RESULTS_ITER_LOC, "w") as f:
+        json.dump(
+        {
+            "Iteration": iteration,
+            "no_cache": iter_no_cache_results,
+            "warm": iter_cache_results,
+            "speedup_no_cache_vs_cache": _calculate_speedup(iter_no_cache_results, iter_cache_results),
+        },
+        f,
+        indent=2
+    )
 
 def main():
     cache_stats, no_cache_stats = [], []
+    no_cache_aggregate, cache_aggregate = {}, {}
 
     for i in range(NUM_ITERATIONS):
         print(f"Iteration {i + 1}/{NUM_ITERATIONS}", flush=True)
@@ -131,8 +145,10 @@ def main():
         results, env, wall = _single_tune(use_compilation_cache=True)
         cache_stats.append(_extract_stats(results, env, wall))
 
-    no_cache_aggregate = _run_N_times(no_cache_stats)
-    cache_aggregate = _run_N_times(cache_stats)
+        no_cache_aggregate = _run_N_times(no_cache_stats)
+        cache_aggregate = _run_N_times(cache_stats)
+
+        _save_iter_results(i + 1, no_cache_aggregate, cache_aggregate)
 
     _save_results(no_cache_aggregate, cache_aggregate)
 
