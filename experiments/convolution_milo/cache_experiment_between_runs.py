@@ -89,7 +89,7 @@ def _run_N_times(stats: list[dict]):
         for stat in stats:
             values.append(stat[key])
         aggregate[f"{key}_mean"] = float(np.mean(values))
-        aggregate[f"{key}_std.dev"] = (float(np.std(values, ddof = 1)) if len(values) > 1 else float("NaN"))
+        aggregate[f"{key}_std.dev"] = float(np.std(values, ddof = 1)) if len(values) > 1 else float("NaN")
     
     return aggregate
 
