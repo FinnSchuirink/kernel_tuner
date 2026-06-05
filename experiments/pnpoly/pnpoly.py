@@ -75,7 +75,7 @@ def tune(compilation_cache_enabled=False):
     results, env = kernel_tuner.tune_kernel("cn_pnpoly", 'pnpoly.cu', problem_size, args, tune_params, grid_div_x=grid_div_x, cmem_args=c_mem,
                     verbose=True, strategy="random_sample", cache="pnpoly_cache.json", compilation_cache_enabled=compilation_cache_enabled)
 
-    return results
+    return results, env
 
 
 if __name__ == "__main__":
