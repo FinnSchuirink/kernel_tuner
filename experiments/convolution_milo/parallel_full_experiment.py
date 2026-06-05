@@ -8,15 +8,16 @@ import random
 
 DEVICE = "A4000-Ada"
 LANG = "CUDA"
-NUM_ITERATIONS = 10
-NUM_THREADS = [1, 2, 4, 8, 16, 32, 64, 128]
+NUM_ITERATIONS = 3
+NUM_THREADS = [1, 2, 4]
 RESULTS_LOC = f"results/parallel_results_{DEVICE}_{LANG}.json"
+
 PYCACHE = "__pycache__"
 BENCHMARK_CACHE = "convolution_milo.json"
 
 def _remove_base_cache():
     base = f"cachefiles/convolution_milo/{DEVICE.upper()}"
-    for suffix in [".json", "-results.json", "-metadata.json"]:
+    for suffix in [".json", "-Sequential-results.json", "-Parallel-results.json", "-Parallel-metadata.json", "-Sequential-metadata.json"]:
         path = base + suffix
         if (os.path.exists(path)):
             os.remove(path)
@@ -95,6 +96,22 @@ def _save_results(threaded_results):
             indent=2
         )
 
+def _save_iter_results(iteration, iter_seq_results, iter_parallel_results, num_threads):
+    RESULTS_ITER_LOC = f"results/iter_results/{num_threads}/parallel_results_{DEVICE}_{LANG}.json"
+    os.makedirs(os.path.dirname(RESULTS_ITER_LOC), exist_ok=True)
+
+    with open(RESULTS_ITER_LOC, "w") as f:
+        json.dump(
+        {
+            "Iteration": iteration,
+            "Sequential": iter_seq_results,
+            "Parallel": iter_parallel_results,
+            "Speedup": _calculate_speedup(iter_seq_results, iter_parallel_results)
+        },
+        f,
+        indent=2
+    )
+
 
 def main():
     threaded_results = {}
@@ -118,6 +135,11 @@ def main():
 
             sequential_stats.append(iter_results["Sequential"])
             parallel_stats.append(iter_results["Parallel"])
+
+            sequential_aggregate = _run_N_times(sequential_stats)
+            parallel_aggregate = _run_N_times(parallel_stats)
+
+            _save_iter_results(i + 1, sequential_aggregate, parallel_aggregate, num_threads)
 
         sequential_aggregate = _run_N_times(sequential_stats)
         parallel_aggregate = _run_N_times(parallel_stats)
