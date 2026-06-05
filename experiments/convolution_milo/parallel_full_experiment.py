@@ -97,7 +97,7 @@ def _save_results(threaded_results):
         )
 
 def _save_iter_results(iteration, iter_seq_results, iter_parallel_results, num_threads):
-    RESULTS_ITER_LOC = f"results/iter_results/{num_threads}/parallel_results_{DEVICE}_{LANG}.json"
+    RESULTS_ITER_LOC = f"results/iter_results/threads/{num_threads}/parallel_results_{DEVICE}_{LANG}.json"
     os.makedirs(os.path.dirname(RESULTS_ITER_LOC), exist_ok=True)
 
     with open(RESULTS_ITER_LOC, "w") as f:
