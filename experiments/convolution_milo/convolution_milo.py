@@ -8,6 +8,7 @@
 ##################################################################################
 
 import os
+import sys
 from collections import OrderedDict
 import time
 
@@ -15,48 +16,6 @@ import numpy
 
 import kernel_tuner
 from kernel_tuner.file_utils import store_metadata_file, store_output_file
-
-def verify_results(parallel_results: list, seq_results: list, tune_params: list):
-    """Check if both runner produce the same results to verify correctness.
-
-        :param parallel_results: The results of the ParallelRunner
-        :type parallel_results: list
-
-        :param seq_results: The results of the SequentialRunner
-        :type seq_results: list
-
-        :param tune_params: List of all parameters that were tuned in the runs
-        :type tune_params: list
-    """
-    param_keys = list(tune_params.keys())
-
-    seq_configs = len(seq_results)
-    parallel_configs = len(parallel_results)
-
-    print("\nParallel configurations: ", seq_configs)
-    print("\nSequential configurations: ", parallel_configs)
-
-    if (seq_configs != parallel_configs):
-        print("Differing amount of configurations evaluated!")
-        return
-    
-    ## Get fastest configurations
-    seq_best = min(seq_results, key=lambda r: r["time"])
-    parallel_best = min(parallel_results, key=lambda r: r["time"])
-
-    seq_params = {k: seq_best[k] for k in param_keys}
-    parallel_params = {k: parallel_best[k] for k in param_keys}
-    
-    print(f"\nSequential best {seq_params} in {round(seq_best["time"], 3)}ms")
-    print(f"\nParallel best {parallel_params} in {round(parallel_best["time"], 3)}ms")
-
-    if (seq_params == parallel_params):
-        print("Solutions found are equal!")
-    elif (abs(seq_best["time"] - parallel_best["time"]) < 0.01):
-        ## Sequential evaluates solutions in order of submission, while parallel in order of completion
-        print("Different solutions were found, but are equally optimal")
-    else:
-        print("Solutions found are not equal!")
 
 
 def ops(w, h, fw, fh):
@@ -73,13 +32,13 @@ total_flops = ops(w, h, fw, fh)
 # def tune(inputs, lang, strategy):
 def tune(
     device_name: str,
-    runner_mode: str,
     strategy="brute_force",
     strategy_options=None,
     verbose=True,
     quiet=False,
+    simulation_mode=False,
     lang="CUDA",
-    num_threads=None
+    compilation_cache_enabled=False,
 ):
     if lang == "CUDA":
         kernel_file = "/convolution_milo.cu"
@@ -156,7 +115,7 @@ def tune(
     metrics = OrderedDict()
     metrics["GFLOP/s"] = lambda p: total_flops / (p["time"] / 1000.0)
 
-    base_cachepath = f"cachefiles/convolution_milo/{device_name.upper()}"
+    base_cachepath = f"cachefiles/{device_name.upper()}"
 
     # start tuning
     start = time.time()
@@ -179,13 +138,27 @@ def tune(
         quiet=quiet,
         strategy=strategy,
         strategy_options=strategy_options,
-        runner_mode=runner_mode,
-        num_threads=num_threads
+        simulation_mode=simulation_mode,
+        compilation_cache_enabled=compilation_cache_enabled,
     )
     end = time.time()
     env["execution_time"] = end - start
 
-    store_output_file(f"{base_cachepath}-{runner_mode}-results.json", results, tune_params)
-    store_metadata_file(f"{base_cachepath}-{runner_mode}-metadata.json")
+    store_output_file(f"{base_cachepath}-results.json", results, tune_params)
+    store_metadata_file(f"{base_cachepath}-metadata.json")
     return results, env
 
+
+if __name__ == "__main__":
+    language = sys.argv[1]
+    device_name = sys.argv[2]
+
+    if len(sys.argv) != 3:
+        raise ValueError(
+            f"Usage: python convolution_milo.py [language ('HIP' or 'CUDA')] [device name], given: {sys.argv}"
+        )
+
+    if language not in ("HIP", "CUDA"):
+        raise ValueError(f"{language} not valid, specify HIP or CUDA")
+
+    tune(device_name=device_name, lang=language)

@@ -34,7 +34,7 @@ import numpy as np
 import kernel_tuner
 
 
-def tune():
+def tune(compilation_cache_enabled=False):
 
     # set the number of points and the number of vertices
     size = np.int32(2e7)
@@ -73,7 +73,7 @@ def tune():
 
     # start tuning
     results, env = kernel_tuner.tune_kernel("cn_pnpoly", 'pnpoly.cu', problem_size, args, tune_params, grid_div_x=grid_div_x, cmem_args=c_mem,
-                    verbose=True, strategy="random_sample", cache="pnpoly_cache.json")
+                    verbose=True, strategy="random_sample", cache="pnpoly_cache.json", compilation_cache_enabled=compilation_cache_enabled)
 
     return results
 
