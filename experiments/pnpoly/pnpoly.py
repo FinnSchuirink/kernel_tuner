@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+
+###########################################################################################################
+#                                                                                                         #
+#                     This file belongs to Ben van Werkhoven, all rights are reserved                     #
+#          Link: https://github.com/benvanwerkhoven/benchmark_kernels/blob/finn/pnpoly/pnpoly.cu          #
+#                                                                                                         #
+###########################################################################################################
+
 """ Point-in-Polygon host/device code tuner
 
 This program is used for auto-tuning the host and device code of a CUDA program
