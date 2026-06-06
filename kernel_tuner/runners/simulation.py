@@ -31,7 +31,7 @@ class SimulationDevice(_SimulationDevice):
 class SimulationRunner(Runner):
     """SimulationRunner is used for tuning with a single process/thread."""
 
-    def __init__(self, kernel_source, kernel_options, device_options, iterations, observers):
+    def __init__(self, kernel_source, kernel_options, device_options, iterations, observers, num_threads=None):
         """Instantiate the SimulationRunner.
 
         :param kernel_source: The kernel source
@@ -52,7 +52,7 @@ class SimulationRunner(Runner):
         self.dev = SimulationDevice(1024, dict(device_name="Simulation"), self.quiet)
 
         self.kernel_source = kernel_source
-        self.simulation_mode = True
+        self.runner_mode = "Simulation"
         self.kernel_options = kernel_options
 
         self.start_time = perf_counter()

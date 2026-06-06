@@ -563,20 +563,38 @@ class DeviceInterface(object):
 
         if not correct:
             raise RuntimeError("Kernel result verification failed for: " + util.get_config_string(instance.params))
-
-    def compile_and_benchmark(self, kernel_source, gpu_args, params, kernel_options, to):
-        # reset previous timers
-        last_compilation_time = None
-        last_verification_time = None
+    
+    def benchmark_kernel(self, instance, func, gpu_args, to, result):
+        # reset previous benchmark timer
         last_benchmark_time = None
 
         verbose = to.verbose
+
+        # setting the NVML parameters here avoids this time from leaking into the benchmark time, ends up in framework time instead
+        if self.use_nvml:
+            self.set_nvml_parameters(instance)
+        start_benchmark = time.perf_counter()
+        result.update(
+            self.benchmark(func, gpu_args, instance, verbose, to.objective, skip_nvml_setting=False)
+        )
+        last_benchmark_time = 1000 * (time.perf_counter() - start_benchmark)
+
+        result["benchmark_time"] = last_benchmark_time or 0
+
+        return result
+
+    def compile(self, kernel_source, gpu_args, params, kernel_options, to):
+        ## Reset previous timers
+        last_compilation_time = None
+        last_verification_time = None
+        verbose = to.verbose
+
         result = {}
 
         # Compile and benchmark a kernel instance based on kernel strings and parameters
         instance_string = util.get_instance_string(params)
 
-        logging.debug("compile_and_benchmark " + instance_string)
+        logging.debug("compiling" + instance_string)
 
         instance = self.create_kernel_instance(kernel_source, kernel_options, params, verbose)
         if isinstance(instance, util.ErrorConfig):
@@ -588,7 +606,7 @@ class DeviceInterface(object):
             try:
                 # compile the kernel
                 start_compilation = time.perf_counter()
-                func = self.compile_kernel(instance, verbose)
+                func, module = self.compile_kernel(instance, verbose)
                 if not func:
                     result[to.objective] = util.CompilationFailedConfig()
                 else:
@@ -597,10 +615,10 @@ class DeviceInterface(object):
                         self.dev.copy_shared_memory_args(util.get_smem_args(kernel_options.smem_args, params))
                     # add constant memory arguments to compiled module
                     if kernel_options.cmem_args is not None:
-                        self.dev.copy_constant_memory_args(kernel_options.cmem_args)
+                        self.dev.copy_constant_memory_args(kernel_options.cmem_args, module)
                     # add texture memory arguments to compiled module
                     if kernel_options.texmem_args is not None:
-                        self.dev.copy_texture_memory_args(kernel_options.texmem_args)
+                        self.dev.copy_texture_memory_args(kernel_options.texmem_args, module)
 
                 # stop compilation stopwatch and convert to milliseconds
                 last_compilation_time = 1000 * (time.perf_counter() - start_compilation)
@@ -610,32 +628,20 @@ class DeviceInterface(object):
                     start_verification = time.perf_counter()
                     self.check_kernel_output(func, gpu_args, instance, to.answer, to.atol, to.verify, verbose)
                     last_verification_time = 1000 * (time.perf_counter() - start_verification)
-
-                # benchmark
-                if func:
-                    # setting the NVML parameters here avoids this time from leaking into the benchmark time, ends up in framework time instead
-                    if self.use_nvml:
-                        self.set_nvml_parameters(instance)
-                    start_benchmark = time.perf_counter()
-                    result.update(
-                        self.benchmark(func, gpu_args, instance, verbose, to.objective, skip_nvml_setting=False)
-                    )
-                    last_benchmark_time = 1000 * (time.perf_counter() - start_benchmark)
+            
+                result["compile_time"] = last_compilation_time or 0
+                result["verification_time"] = last_verification_time or 0
+                result["benchmark_time"] = 0
 
             except Exception as e:
                 # dump kernel sources to temp file
                 temp_filenames = instance.prepare_temp_files_for_error_msg()
-                print("Error while compiling or benchmarking, see source files: " + " ".join(temp_filenames))
+                print("Error while compiling, see source files: " + " ".join(temp_filenames))
                 raise e
 
             # clean up any temporary files, if no error occurred
             instance.delete_temp_files()
-
-        result["compile_time"] = last_compilation_time or 0
-        result["verification_time"] = last_verification_time or 0
-        result["benchmark_time"] = last_benchmark_time or 0
-
-        return result
+        return result, func, to, instance
 
     def compile_kernel(self, instance, verbose):
 
@@ -707,7 +713,7 @@ class DeviceInterface(object):
                         "Compute_Capability": str(c_c) if c_c is not None else "N.A"
                     }
                 )
-        return func
+        return func, binary
 
     @staticmethod
     def preprocess_gpu_arguments(old_arguments, params):
@@ -718,13 +724,13 @@ class DeviceInterface(object):
         """Adds shared memory arguments to the most recently compiled module."""
         self.dev.copy_shared_memory_args(smem_args)
 
-    def copy_constant_memory_args(self, cmem_args):
+    def copy_constant_memory_args(self, cmem_args, module):
         """Adds constant memory arguments to the most recently compiled module."""
-        self.dev.copy_constant_memory_args(cmem_args)
+        self.dev.copy_constant_memory_args(cmem_args, module)
 
-    def copy_texture_memory_args(self, texmem_args):
+    def copy_texture_memory_args(self, texmem_args, module):
         """Adds texture memory arguments to the most recently compiled module."""
-        self.dev.copy_texture_memory_args(texmem_args)
+        self.dev.copy_texture_memory_args(texmem_args, module)
 
     def create_kernel_instance(self, kernel_source, kernel_options, params, verbose):
         """Create kernel instance from kernel source, parameters, problem size, grid divisors, and so on."""

@@ -47,3 +47,6 @@ compilation_cache/
 
 .vscode
 .idea
+
+/.venv_win
+/venv

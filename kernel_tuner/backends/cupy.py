@@ -11,6 +11,7 @@ from kernel_tuner.observers.cupy import CupyRuntimeObserver
 # and run tests without cupy installed
 try:
     import cupy as cp
+    from cupyx import get_runtime_info
 except ImportError:
     cp = None
 
@@ -69,7 +70,7 @@ class CupyFunctions(GPUBackend):
 
         # collect environment information
         env = dict()
-        cupy_info = str(cp._cupyx.get_runtime_info()).split("\n")[:-1]
+        cupy_info = str(get_runtime_info()).split("\n")[:-1]
         info_dict = {
             s.split(":")[0].strip(): s.split(":")[1].strip() for s in cupy_info
         }
@@ -129,14 +130,14 @@ class CupyFunctions(GPUBackend):
 
         options = tuple(compiler_options)
 
-        self.current_module = cp.RawModule(
+        current_module = cp.RawModule(
             code=kernel_string, options=options, name_expressions=[kernel_name]
         )
 
-        self.func = self.current_module.get_function(kernel_name)
+        func = current_module.get_function(kernel_name)
         self.num_regs = self.func.num_regs
         
-        return self.func, None
+        return self.func, current_module
 
     def load_binary_to_kernel(self, binary, kernel_instance):
         """Load the CUPY kernel from the cache binary, return the function
@@ -168,8 +169,8 @@ class CupyFunctions(GPUBackend):
             ## Extract function
             func = module.get_function(kernel_instance.name)
             self.func = func
-            self.num_regs = self.func.num_regs
-            return self.func
+            self.num_regs = func.num_regs
+            return func, current_module
         except Exception as e:
             logging.warning(f"_load_binary (CUDA): {e}")
             return None
@@ -193,7 +194,7 @@ class CupyFunctions(GPUBackend):
         """Halts execution until device has finished its tasks."""
         self.dev.synchronize()
 
-    def copy_constant_memory_args(self, cmem_args):
+    def copy_constant_memory_args(self, cmem_args, current_module):
         """Adds constant memory arguments to the most recently compiled module.
 
         :param cmem_args: A dictionary containing the data to be passed to the
@@ -204,7 +205,7 @@ class CupyFunctions(GPUBackend):
         :type cmem_args: dict( string: numpy.ndarray, ... )
         """
         for k, v in cmem_args.items():
-            symbol = self.current_module.get_global(k)
+            symbol = current_module.get_global(k)
             constant_mem = cp.ndarray(v.shape, v.dtype, symbol)
             constant_mem[:] = cp.asarray(v)
 

@@ -604,10 +604,10 @@ def test_process_cache():
     tuning_options = Options(
         cache=cache,
         tune_params=Options(x=[1, 2, 3, 4]),
-        simulation_mode=False,
+        runner_mode="Sequential",
         objective="time",
     )
-    runner = Options(dev=Options(name="test_device"), simulation_mode=False)
+    runner = Options(dev=Options(name="test_device"), runner_mode="Sequantial")
 
     try:
         # call process_cache without pre-existing cache

@@ -292,7 +292,7 @@ class PyCudaFunctions(GPUBackend):
         """Halts execution until device has finished its tasks."""
         self.context.synchronize()
 
-    def copy_constant_memory_args(self, cmem_args):
+    def copy_constant_memory_args(self, cmem_args, current_module):
         """Adds constant memory arguments to the most recently compiled module.
 
         :param cmem_args: A dictionary containing the data to be passed to the
@@ -303,9 +303,9 @@ class PyCudaFunctions(GPUBackend):
         :type cmem_args: dict( string: numpy.ndarray, ... )
         """
         logging.debug("copy_constant_memory_args called")
-        logging.debug("current module: " + str(self.current_module))
+        logging.debug("current module: " + str(current_module))
         for k, v in cmem_args.items():
-            symbol = self.current_module.get_global(k)[0]
+            symbol = current_module.get_global(k)[0]
             logging.debug("copying to symbol: " + str(symbol))
             logging.debug("array to be copied: ")
             logging.debug(v.nbytes)
@@ -317,7 +317,7 @@ class PyCudaFunctions(GPUBackend):
         """Add shared memory arguments to the kernel."""
         self.smem_size = smem_args["size"]
 
-    def copy_texture_memory_args(self, texmem_args):
+    def copy_texture_memory_args(self, texmem_args, current_module):
         """Adds texture memory arguments to the most recently compiled module.
 
         :param texmem_args: A dictionary containing the data to be passed to the
@@ -336,10 +336,10 @@ class PyCudaFunctions(GPUBackend):
         }
 
         logging.debug("copy_texture_memory_args called")
-        logging.debug("current module: " + str(self.current_module))
+        logging.debug("current module: " + str(current_module))
         self.texrefs = []
         for k, v in texmem_args.items():
-            tex = self.current_module.get_texref(k)
+            tex = current_module.get_texref(k)
             self.texrefs.append(tex)
 
             logging.debug("copying to texture: " + str(k))

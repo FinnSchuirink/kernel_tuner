@@ -1,12 +1,4 @@
-/*
-##################################################################################
-#                                                                                #
-#       This file belongs to Floris-Jan Willemsen, all rights are reserved       #
-#                 Link: https://github.com/AutoTuningAssociation                 #
-#                                                                                #
-##################################################################################
-*/
-
+#include "hip/hip_runtime.h"
 #define image_height 4096
 #define image_width 4096
 
@@ -150,6 +142,10 @@ __global__ void convolution_kernel(float *output, float *input, float *filter) {
     }
 
 }
+
+
+
+
 
 __global__ void convolution_naive(float *output, float *input, float *filter) {
 

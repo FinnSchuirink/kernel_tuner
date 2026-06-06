@@ -184,6 +184,6 @@ def test_diff_evo(vector_add, method):
         strategy_options=dict(popsize=5, method=method),
         verbose=True,
         cache=cache_filename,
-        simulation_mode=True,
+        runner_mode="Simulation",
     )
     assert len(result) > 0

@@ -144,7 +144,7 @@ def test_OptAlgWrapper(env):
     # Call the tuner
     res, _ = tune_kernel(kernel_name, kernel_string, size, args, tune_params,
                 strategy=strategy, strategy_options=strategy_options, cache=cache_filename,
-                simulation_mode=True, verbose=True)
+                runner_mode="Simulation", verbose=True)
     assert len(res) == strategy_options['max_fevals']
 
 def test_OptAlgWrapper_T1(env):
@@ -164,7 +164,7 @@ def test_OptAlgWrapper_T1(env):
         device="NVIDIA RTX A4000",
         objective="time",
         objective_higher_is_better=False,
-        simulation_mode=True,
+        runner_mode="Simulation",
         output_T4=False,
         iterations=iterations,
         strategy=strategy,

@@ -184,7 +184,6 @@ class HipFunctions(GPUBackend):
 
             # Load module and get function
             module = hip_check(hip.hipModuleLoadData(code))
-            self.current_module = module
             kernel = hip_check(hip.hipModuleGetFunction(module, kernel_name.encode()))
 
         except Exception as e:
@@ -338,7 +337,7 @@ class HipFunctions(GPUBackend):
 
         hip_check(hip.hipMemcpy(dest, src, src.nbytes, hip.hipMemcpyKind.hipMemcpyHostToDevice))
 
-    def copy_constant_memory_args(self, cmem_args):
+    def copy_constant_memory_args(self, cmem_args, current_module):
         """Adds constant memory arguments to the most recently compiled module.
 
         :param cmem_args: A dictionary containing the data to be passed to the
@@ -353,7 +352,7 @@ class HipFunctions(GPUBackend):
         # Iterate over dictionary
         for symbol_name, data in cmem_args.items():
             # Get symbol pointer and size using hipModuleGetGlobal
-            dptr, _ = hip_check(hip.hipModuleGetGlobal(self.current_module, symbol_name.encode()))
+            dptr, _ = hip_check(hip.hipModuleGetGlobal(current_module, symbol_name.encode()))
 
             # Copy data to the global memory location
             hip_check(hip.hipMemcpy(dptr, data, data.nbytes, hip.hipMemcpyKind.hipMemcpyHostToDevice))

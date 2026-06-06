@@ -29,7 +29,7 @@ def test_store_output_file(env):
     filename = "test_output_file.json"
 
     try:
-        results, _ = tune_kernel(*env, cache=cache_filename, simulation_mode=True)
+        results, _ = tune_kernel(*env, cache=cache_filename, runner_mode="Simulation")
         tune_params = env[-1]
 
         # run store_output_file

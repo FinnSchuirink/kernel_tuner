@@ -87,7 +87,7 @@ def test_strategies(vector_add, strategy):
     assert cache_filename_local.exists()
     assert restrictions is not None
     results, _ = kernel_tuner.tune_kernel(*vector_add, restrictions=restrictions, strategy=strategy, strategy_options=filter_options,
-                                         verbose=False, cache=cache_filename_local, simulation_mode=True)
+                                         verbose=False, cache=cache_filename_local, runner_mode="Simulation")
 
     assert len(results) > 0
 
@@ -129,9 +129,9 @@ def test_strategies(vector_add, strategy):
     filter_options["x0"] = x0
     if not strategy in ["brute_force", "random_sample", "bayes_opt", "pyatf_strategies"]:
         results, _ = kernel_tuner.tune_kernel(*vector_add, restrictions=restrictions, strategy=strategy, strategy_options=filter_options,
-                                            verbose=False, cache=cache_filename, simulation_mode=True)
+                                            verbose=False, cache=cache_filename, runner_mode="Simulation")
         assert results[0]["block_size_x"] == x0[0]
     else:
         with pytest.raises(ValueError):
             results, _ = kernel_tuner.tune_kernel(*vector_add, restrictions=restrictions, strategy=strategy, strategy_options=filter_options,
-                                            verbose=False, cache=cache_filename, simulation_mode=True)
+                                            verbose=False, cache=cache_filename, runner_mode="Simulation")

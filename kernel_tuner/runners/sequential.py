@@ -11,7 +11,7 @@ from kernel_tuner.util import ErrorConfig, print_config_output, process_metrics,
 class SequentialRunner(Runner):
     """SequentialRunner is used for tuning with a single process/thread."""
 
-    def __init__(self, kernel_source, kernel_options, device_options, iterations, observers, compilation_cache_enabled):
+    def __init__(self, kernel_source, kernel_options, device_options, iterations, observers, compilation_cache_enabled, num_threads=None):
         """Instantiate the SequentialRunner.
 
         :param kernel_source: The kernel source
@@ -35,7 +35,7 @@ class SequentialRunner(Runner):
         self.quiet = device_options.quiet
         self.kernel_source = kernel_source
         self.warmed_up = False if self.dev.requires_warmup else True
-        self.simulation_mode = False
+        self.runner_mode = "Sequential"
         self.start_time = perf_counter()
         self.last_strategy_start_time = self.start_time
         self.last_strategy_time = 0
@@ -84,11 +84,14 @@ class SequentialRunner(Runner):
                 # attempt to warmup the GPU by running the first config in the parameter space and ignoring the result
                 if not self.warmed_up:
                     warmup_time = perf_counter()
-                    self.dev.compile_and_benchmark(self.kernel_source, self.gpu_args, params, self.kernel_options, tuning_options)
+                    self.dev.compile(self.kernel_source, self.gpu_args, params, self.kernel_options, tuning_options)
                     self.warmed_up = True
                     warmup_time = 1e3 * (perf_counter() - warmup_time)
 
-                result = self.dev.compile_and_benchmark(self.kernel_source, self.gpu_args, params, self.kernel_options, tuning_options)
+                result, func, to, instance = self.dev.compile(self.kernel_source, self.gpu_args, params, self.kernel_options, tuning_options)
+
+                if func is not None:
+                    self.dev.benchmark_kernel(instance, func, self.gpu_args, to, result)
 
                 params.update(result)
 
