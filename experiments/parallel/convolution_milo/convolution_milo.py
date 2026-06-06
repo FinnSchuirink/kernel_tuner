@@ -36,10 +36,10 @@ def tune(
     strategy_options=None,
     verbose=True,
     quiet=False,
-    simulation_mode=False,
     lang="CUDA",
     compilation_cache_enabled=False,
-    num_threads=None
+    num_threads=None,
+    runner_mode="Sequential",
 ):
     if lang == "CUDA":
         kernel_file = "/convolution_milo.cu"
@@ -56,10 +56,10 @@ def tune(
 
     image_width, image_height, filter_width, filter_height = inputs
 
-    tune_params["block_size_x"] = [16 * i for i in range(1, 17)]
-    tune_params["block_size_y"] = [2**i for i in range(5)]
-    tune_params["tile_size_x"] = [i for i in range(1, 5)]
-    tune_params["tile_size_y"] = [i for i in range(1, 5)]
+    tune_params["block_size_x"] = [16 * i for i in range(1, 2)]
+    tune_params["block_size_y"] = [1, 2]
+    tune_params["tile_size_x"] = [1]
+    tune_params["tile_size_y"] = [1, 2]
     tune_params["read_only"] = [0, 1]  # toggle using the read-only cache
 
     # do dry run
@@ -139,7 +139,7 @@ def tune(
         quiet=quiet,
         strategy=strategy,
         strategy_options=strategy_options,
-        simulation_mode=simulation_mode,
+        runner_mode=runner_mode,
         compilation_cache_enabled=compilation_cache_enabled,
         num_threads=num_threads
     )

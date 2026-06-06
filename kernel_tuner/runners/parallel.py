@@ -10,8 +10,8 @@ from kernel_tuner.runners.runner import Runner
 from kernel_tuner.util import ErrorConfig, print_config_output, process_metrics, store_cache
 
 class ParallelRunner(Runner):
-    def __init__(self, kernel_source, kernel_options, device_options, iterations, observers, num_threads):
-            """Instantiate the ParallelRunner.
+    def __init__(self, kernel_source, kernel_options, device_options, iterations, observers, num_threads, compilation_cache_enabled=False):
+        """Instantiate the ParallelRunner.
 
             :param kernel_source: The kernel source
             :type kernel_source: kernel_tuner.core.KernelSource
@@ -26,48 +26,49 @@ class ParallelRunner(Runner):
             :param iterations: The number of iterations used for benchmarking
                 each kernel instance.
             :type iterations: int
-            """
-            #detect language and create high-level device interface
-            self.dev = DeviceInterface(kernel_source, iterations=iterations, observers=observers, **device_options)
+        """
+        #detect language and create high-level device interface
+        self.dev = DeviceInterface(kernel_source, compilation_cache_enabled=compilation_cache_enabled, iterations=iterations, observers=observers, **device_options)
 
-            self.cuda_context = None
-            # Save current CUDA context to be pushed to threads later
-            try:
-                import pycuda.driver as drv
-                self.cuda_context = drv.Context.get_current()
-            except:
-                pass
+        self.cuda_context = None
+        # Save current CUDA context to be pushed to threads later
+        try:
+            import pycuda.driver as drv
+            self.cuda_context = drv.Context.get_current()
+        except:
+            pass
 
-            self.units = self.dev.units
-            self.quiet = device_options.quiet
-            self.kernel_source = kernel_source
-            self.warmed_up = False if self.dev.requires_warmup else True
-            self.runner_mode = "Parallel"
-            self.start_time = perf_counter()
-            self.last_strategy_start_time = self.start_time
-            self.last_strategy_time = 0
-            self.kernel_options = kernel_options
-            self.num_threads = num_threads
+        self.units = self.dev.units
+        self.quiet = device_options.quiet
+        self.kernel_source = kernel_source
+        self.warmed_up = False if self.dev.requires_warmup else True
+        self.runner_mode = "Parallel"
+        self.start_time = perf_counter()
+        self.last_strategy_start_time = self.start_time
+        self.last_strategy_time = 0
+        self.kernel_options = kernel_options
+        self.num_threads = num_threads
 
-            #move data to the GPU
-            self.gpu_args = self.dev.ready_argument_list(kernel_options.arguments)
-            self.wall_compile_time = 0
+        #move data to the GPU
+        self.gpu_args = self.dev.ready_argument_list(kernel_options.arguments)
+        self.wall_compile_time = 0
 
     def get_environment(self, tuning_options):
         env = self.dev.get_environment()
         env["wall_compile_time"] = self.wall_compile_time
         return env
-    """
 
-    :param element: The current configuration inside the parameter space currently being observed
-    :type element: tuple
-
-    :param tuning_options: A dictionary with all options regarding the tuning process.
-    :type tuning_options: kernel_tuner.interface.Options
-
-    :returns tuple of necessary information for benchmarking:
-    """
     def single_compilation(self, element, tuning_options):
+        """
+
+            :param element: The current configuration inside the parameter space currently being observed
+            :type element: tuple
+
+            :param tuning_options: A dictionary with all options regarding the tuning process.
+            :type tuning_options: kernel_tuner.interface.Options
+
+            :returns tuple of necessary information for benchmarking:
+        """
         ## Copy cuda_context onto the thread
         if (self.cuda_context is not None):
             self.cuda_context.push()

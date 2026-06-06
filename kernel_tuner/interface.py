@@ -667,7 +667,7 @@ def tune_kernel(
             selected_runner = ParallelRunner
 
     tuning_options.simulated_time = 0
-    runner = selected_runner(kernelsource, kernel_options, device_options, iterations, observers, compilation_cache_enabled, num_threads)
+    runner = selected_runner(kernel_source=kernelsource, kernel_options=kernel_options, device_options=device_options, iterations=iterations, observers=observers, compilation_cache_enabled=compilation_cache_enabled, num_threads=num_threads)
 
     # the user-specified function may or may not have an optional atol argument;
     # we normalize it so that it always accepts atol.

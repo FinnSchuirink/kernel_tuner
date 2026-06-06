@@ -2,6 +2,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import threading
 
 class CompilationCache:
     """Class to build a compilation cache that re-uses kernels, if the kernel exists
@@ -36,6 +37,7 @@ class CompilationCache:
         self._hits = 0
         self._misses = 0
         self._index = self._load_index()
+        self._lock = threading.lock()
 
     def put(self, key: str, compiled_binary: bytes, metadata: dict = None):
         """Store the compiled binary in the cache
@@ -49,22 +51,23 @@ class CompilationCache:
         :param metadata: Meta data about the file, for debugging purposes (backend, device, flags, ...)
         :type metadata: dict
         """
-        cache_filename = key + ".bin"
+        with self._lock:
+            cache_filename = key + ".bin"
 
-        ## Save binary in cache
-        binary_path = Path(os.path.join(self._cache_dir, cache_filename))
-        binary_path.write_bytes(compiled_binary)
+            ## Save binary in cache
+            binary_path = Path(os.path.join(self._cache_dir, cache_filename))
+            binary_path.write_bytes(compiled_binary)
 
-        ## Save cache entry with metadata in a map
-        self._index[key] = {
-            "filename": cache_filename,
-            "size": len(compiled_binary),
-            **(metadata or {})
-        }
+            ## Save cache entry with metadata in a map
+            self._index[key] = {
+                "filename": cache_filename,
+                "size": len(compiled_binary),
+                **(metadata or {})
+            }
 
-        ## Update index page
-        self._write_index()
-        return None
+            ## Update index page
+            self._write_index()
+            return None
         
     def get(self, key: str):
         """Get compiled binary from the cache
@@ -72,26 +75,28 @@ class CompilationCache:
         :param key: The deterministic key for the compiled binary (using make_cache_key)
         :type key: str
         """
-        ## Binary not in cache
-        if (key not in self._index):
-            self._misses += 1
-            return None
-        
-        ## Full path to the desired binary
-        cache_entry = self._index[key]
-        cache_file = cache_entry["filename"]
 
-        binary_path = Path(os.path.join(self._cache_dir, cache_file))
+        with self._lock:
+            ## Binary not in cache
+            if (key not in self._index):
+                self._misses += 1
+                return None
+            
+            ## Full path to the desired binary
+            cache_entry = self._index[key]
+            cache_file = cache_entry["filename"]
 
-        ## Key exists in cache, but file is deleted -> update _index
-        if (not os.path.exists(binary_path)):
-            del self._index[key]
-            self._misses += 1
-            return None
+            binary_path = Path(os.path.join(self._cache_dir, cache_file))
 
-        ## Hit -> Get binary
-        self._hits += 1
-        return binary_path.read_bytes()
+            ## Key exists in cache, but file is deleted -> update _index
+            if (not os.path.exists(binary_path)):
+                del self._index[key]
+                self._misses += 1
+                return None
+
+            ## Hit -> Get binary
+            self._hits += 1
+            return binary_path.read_bytes()
     
     @staticmethod
     def make_cache_key(kernel_string: str, backend: str, device: str, flags: list[str], cuda_version=None, cc=None) -> str:
