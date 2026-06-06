@@ -316,7 +316,7 @@ class CompilerFunctions(CompilerBackend):
             delete_temp_file(filename + ".so")
             delete_temp_file(filename + ".dylib")
 
-        return func, binary
+        return func, binary, None
     
     def load_binary_to_kernel(self, binary, kernel_instance):
         """Load the C/FORTRAN kernel from the cache binary, return the function

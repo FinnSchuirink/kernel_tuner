@@ -1,5 +1,5 @@
 import shutil
-from experiments.convolution_milo.convolution_milo import tune
+from experiments.caching.convolution_milo.convolution_milo import tune
 import os
 import time
 import json
@@ -7,7 +7,7 @@ import numpy as np
 
 DEVICE = "A4000-Ada"
 LANG = "CUDA"
-NUM_ITERATIONS = 10
+NUM_ITERATIONS = 1
 RESULTS_LOC = f"results/cache_experiment_between_runs_{DEVICE}_{LANG}.json"
 RESULTS_ITER_LOC = f"results/iter_results/caching/cache_results_between_runs.json"
 PYCACHE = "__pycache__"

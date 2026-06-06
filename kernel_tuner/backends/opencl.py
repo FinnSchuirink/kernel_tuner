@@ -150,7 +150,6 @@ class OpenCLFunctions(GPUBackend):
 
             ## Extract the function
             func = getattr(program, kernel_instance.name)
-            self.dev.func = func
             return func
         except Exception as e:
             logging.warning(f"_load_binary (OPENCL): {e}")

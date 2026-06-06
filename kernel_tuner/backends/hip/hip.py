@@ -191,7 +191,7 @@ class HipFunctions(GPUBackend):
             hip_check(hiprtc.hiprtcDestroyProgram(prog.createRef()))
             raise e
 
-        return kernel, bytes(code)
+        return kernel, bytes(code), module
     
     def load_binary_to_kernel(self, binary, kernel_instance):
         """Load the HIP kernel from the cache binary, return the function
@@ -212,14 +212,11 @@ class HipFunctions(GPUBackend):
             ## Load HIP module
             module = hip_check(hip.hipModuleLoadData(binary))
 
-            ## Update the current module
-            self.current_module = module
-
             ## Extract the function
             func = hip_check(hip.hipModuleGetFunction(module, kernel_instance.name.encode()))
             
             self.func = func
-            return func
+            return func, module
         except Exception as e:
             logging.warning(f"_load_binary (HIP): {e}")
             return None
@@ -346,6 +343,9 @@ class HipFunctions(GPUBackend):
             value needs to be copied. Similar to regular arguments, these need
             to be numpy objects, such as numpy.ndarray or numpy.int32, and so on.
         :type cmem_args: dict(string: numpy.ndarray, ...)
+
+        :param current_module: The module to copy into
+        :type current_module: pycuda module
         """
         logging.debug("HipFunction copy_constant_memory_args called")
 

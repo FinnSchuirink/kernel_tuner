@@ -267,6 +267,9 @@ class DeviceInterface(object):
         :param times: Return the execution time of all iterations.
         :type times: bool
 
+        :param compilation_cache_enabled: Whether or not to use the compilation cache
+        :type compilation_cache_enabled: bool
+
         :param compilation_cache: Instance of a compilation cache, used for saving binaries
         :type compilation_cache: kernel_tuner.CompilationCache
 
@@ -324,7 +327,7 @@ class DeviceInterface(object):
                 iterations=iterations,
                 compiler_options=compiler_options
             )
-            self.requires_warmup = False
+            self.requires_warmup = True
         else:
             raise NotImplementedError(
                 "Sorry, support for languages other than CUDA, OpenCL, HIP, C, and Fortran is not implemented yet"
@@ -407,7 +410,6 @@ class DeviceInterface(object):
         for obs in self.benchmark_observers:
             result.update(obs.get_results())
 
-
     def benchmark_continuous(self, func, gpu_args, threads, grid, result, duration):
         """Benchmark continuously for at least 'duration' seconds."""
         iterations = int(np.ceil(duration / (result["time"] / 1000)))
@@ -431,7 +433,6 @@ class DeviceInterface(object):
         for obs in self.continuous_observers:
             result.update(obs.get_results())
 
-
     def set_nvml_parameters(self, instance):
         """Set the NVML parameters. Avoids setting time leaking into benchmark time."""
         if self.use_nvml:
@@ -449,7 +450,6 @@ class DeviceInterface(object):
         if self.use_tegra:
             if "tegra_gr_clock" in instance.params:
                 self.tegra.gr_clock = instance.params["tegra_gr_clock"]
-
 
     def benchmark(self, func, gpu_args, instance, verbose, objective, skip_nvml_setting=False):
         """Benchmark the kernel instance."""
@@ -644,6 +644,8 @@ class DeviceInterface(object):
         return result, func, to, instance
 
     def compile_kernel(self, instance, verbose):
+        func = None
+        module = None
 
         """Compile the kernel for this specific instance."""
         logging.debug("compile_kernel " + instance.name)
@@ -657,25 +659,24 @@ class DeviceInterface(object):
                 backend=self.lang,
                 device=self.dev.name,
                 flags=self.compiler_options,
-                cuda_version= str(cuda_vers),
-                cc=str(c_c)
+                cuda_version=str(cuda_vers),
+                cc=str(c_c),
             )
 
             compiled_binary = self.compilation_cache.get(cache_key)
             if (compiled_binary is not None):
                 ## Load the binary 
-                func = self.dev.load_binary_to_kernel(binary=compiled_binary, kernel_instance=instance)
+                func, module = self.dev.load_binary_to_kernel(binary=compiled_binary, kernel_instance=instance)
                 if func is not None:
                     logging.info("Cache hit, loading binary!")
-                    return func
+                    return func, module
         
             logging.info("Cache miss, recompiling binary!")
         
         # Compile kernel_string into device func
-        func = None
         binary = None
         try:
-            func, binary = self.dev.compile(instance)
+            func, binary, module = self.dev.compile(instance)
         except Exception as e:
             # compiles may fail because certain kernel configurations use too
             # much shared memory for example, the desired behavior is to simply
@@ -713,7 +714,7 @@ class DeviceInterface(object):
                         "Compute_Capability": str(c_c) if c_c is not None else "N.A"
                     }
                 )
-        return func, binary
+        return func, module
 
     @staticmethod
     def preprocess_gpu_arguments(old_arguments, params):
@@ -728,7 +729,7 @@ class DeviceInterface(object):
         """Adds constant memory arguments to the most recently compiled module."""
         self.dev.copy_constant_memory_args(cmem_args, module)
 
-    def copy_texture_memory_args(self, texmem_args, module):
+    def copy_texture_memory_args(self, texmem_args, module=None):
         """Adds texture memory arguments to the most recently compiled module."""
         self.dev.copy_texture_memory_args(texmem_args, module)
 

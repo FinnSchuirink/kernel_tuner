@@ -1,5 +1,5 @@
 import shutil
-from experiments.pnpoly.pnpoly import tune
+from experiments.caching.pnpoly.pnpoly import tune
 import os
 import time
 import json
@@ -7,12 +7,13 @@ import numpy as np
 
 NUM_ITERATIONS = 10
 
-RESULTS_LOC = f"results/cache_experiment_in_run.json"
-RESULTS_ITER_LOC = f"results/iter_results/caching/cache_results_in_run.json"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-PYCACHE = "__pycache__"
-COMPILATION_CACHE_DIR = "compilation_cache"
-BENCHMARK_CACHE = "pnpoly_cache.json"
+RESULTS_LOC = os.path.join(BASE_DIR, "results", "cache_experiment_in_run.json")
+RESULTS_ITER_LOC = os.path.join(BASE_DIR, "results", "iter_results", "caching", "cache_results_in_run.json")
+PYCACHE = os.path.join(BASE_DIR, "__pycache__")
+COMPILATION_CACHE_DIR = os.path.join(BASE_DIR, "compilation_cache")
+BENCHMARK_CACHE = os.path.join(BASE_DIR, "pnpoly_cache.json")
 
 def _clear_cache():
     if (os.path.exists(COMPILATION_CACHE_DIR)):

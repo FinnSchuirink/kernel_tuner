@@ -203,7 +203,7 @@ class CudaFunctions(GPUBackend):
             print(log.decode("utf-8"))
             raise re
 
-        return self.func, bytes(buff)
+        return func, bytes(buff), current_module
 
     def load_binary_to_kernel(self, binary, kernel_instance):
         """Load the NVCUDA kernel from the cache binary, return the function
@@ -224,22 +224,18 @@ class CudaFunctions(GPUBackend):
             ## Get module
             _, module = driver.cuModuleLoadData(binary)
 
-            ## Update current module
-            self.current_module = module
-
             ## Extract function
             _, func = driver.cuModuleGetFunction(module, kernel_instance.name.encode())
-            self.func = func
 
             # get the number of registers per thread used in this kernel
             num_regs = driver.cuFuncGetAttribute(driver.CUfunction_attribute.CU_FUNC_ATTRIBUTE_NUM_REGS, self.func)
             assert num_regs[0] == 0, f"Retrieving number of registers per thread unsuccesful: code {num_regs[0]}"
             self.num_regs = num_regs[1]
             
-            return func
+            return func, self.current_module
         except Exception as e:
             logging.warning(f"_load_binary (NVCUDA): {e}")
-            return None
+            return None, None
 
     def start_event(self):
         """Records the event that marks the start of a measurement."""
@@ -274,6 +270,9 @@ class CudaFunctions(GPUBackend):
             value needs to be copied. Similar to regular arguments, these need
             to be numpy objects, such as numpy.ndarray or numpy.int32, and so on.
         :type cmem_args: dict( string: numpy.ndarray, ... )
+
+        :param current_module: The module to copy into
+        :type current_module: pycuda module
         """
         for k, v in cmem_args.items():
             err, symbol, _ = driver.cuModuleGetGlobal(current_module, str.encode(k))
@@ -291,6 +290,9 @@ class CudaFunctions(GPUBackend):
         :param texmem_args: A dictionary containing the data to be passed to the
             device texture memory. See tune_kernel().
         :type texmem_args: dict
+
+        :param current_module: The module to copy into
+        :type current_module: pycuda module
         """
         raise NotImplementedError("NVIDIA CUDA backend does not support texture memory")
 

@@ -199,14 +199,14 @@ class PyCudaFunctions(GPUBackend):
             function after compilation.
         :type kernel_name: string
 
-        :param kernel_string: The CUDA kernel code that contains the function `kernel_name`
-        :type kernel_string: string
+        :param kernel_instance: The CUDA kernel code that contains the function `kernel_name`
+        :type kernel_instance: kernel_tuner.core.KernelInstance
 
-        :returns self.func: An CUDA kernel that can be called directly.
-        :rtype self.func: pycuda.driver.Function
+        :returns func: An CUDA kernel that can be called directly.
+        :rtype func: pycuda.driver.Function
 
-        :returns binary: Binary of the CUDA kernel to be saved in the cache
-        :rtype binary: bytes
+        :returns cubin: Binary of the CUDA kernel to be saved in the cache
+        :rtype cubin: bytes
         """
 
         kernel_string = kernel_instance.kernel_string
@@ -230,12 +230,12 @@ class PyCudaFunctions(GPUBackend):
             )
             
             ## Create module to extract the function
-            self.current_module = drv.module_from_buffer(cubin)
+            current_module = drv.module_from_buffer(cubin)
 
-            self.func = self.current_module.get_function(kernel_name)
-            if not isinstance(self.func, str):
-                self.num_regs = self.func.num_regs
-            return self.func, cubin
+            func = current_module.get_function(kernel_name)
+            if not isinstance(func, str):
+                self.num_regs = func.num_regs
+            return func, cubin, current_module
         
         except drv.CompileError as e:
             if "uses too much shared data" in e.stderr:
@@ -262,19 +262,19 @@ class PyCudaFunctions(GPUBackend):
             mod = drv.module_from_buffer(binary)
 
             ## Update the current module
-            self.current_module = mod
+            current_module = mod
 
             ## Extract function
-            func = self.current_module.get_function(kernel_instance.name)
-            self.func = func
+            func = current_module.get_function(kernel_instance.name)
+            func = func
 
-            if not isinstance(self.func, str):
-                self.num_regs = self.func.num_regs
+            if not isinstance(func, str):
+                self.num_regs = func.num_regs
                 
-            return func
+            return func, current_module
         except Exception as e:
             logging.warning(f"_load_binary (PYCUDA): {e}")
-            return None
+            return None, None
 
     def start_event(self):
         """Records the event that marks the start of a measurement."""
@@ -301,6 +301,9 @@ class PyCudaFunctions(GPUBackend):
             value needs to be copied. Similar to regular arguments, these need
             to be numpy objects, such as numpy.ndarray or numpy.int32, and so on.
         :type cmem_args: dict( string: numpy.ndarray, ... )
+
+        :param current_module: The module to copy into
+        :type current_module: pycuda module
         """
         logging.debug("copy_constant_memory_args called")
         logging.debug("current module: " + str(current_module))
@@ -323,6 +326,9 @@ class PyCudaFunctions(GPUBackend):
         :param texmem_args: A dictionary containing the data to be passed to the
             device texture memory. See tune_kernel().
         :type texmem_args: dict
+
+        :param current_module: The module to copy into
+        :type current_module: pycuda module
         """
         filter_mode_map = {
             "point": drv.filter_mode.POINT,

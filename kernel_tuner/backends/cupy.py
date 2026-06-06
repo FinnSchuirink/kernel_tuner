@@ -137,7 +137,7 @@ class CupyFunctions(GPUBackend):
         func = current_module.get_function(kernel_name)
         self.num_regs = self.func.num_regs
         
-        return self.func, current_module
+        return func, None, current_module
 
     def load_binary_to_kernel(self, binary, kernel_instance):
         """Load the CUPY kernel from the cache binary, return the function
@@ -163,14 +163,10 @@ class CupyFunctions(GPUBackend):
             ## Extract module from temporary .cubin file
             module = cp.RawModule(path=cubin_file_name)
 
-            ## Update current module
-            self.current_module = module
-
             ## Extract function
             func = module.get_function(kernel_instance.name)
-            self.func = func
             self.num_regs = func.num_regs
-            return func, current_module
+            return func, module
         except Exception as e:
             logging.warning(f"_load_binary (CUDA): {e}")
             return None
@@ -203,6 +199,9 @@ class CupyFunctions(GPUBackend):
             value needs to be copied. Similar to regular arguments, these need
             to be numpy objects, such as numpy.ndarray or numpy.int32, and so on.
         :type cmem_args: dict( string: numpy.ndarray, ... )
+
+        :param current_module: The module to copy into
+        :type current_module: pycuda module
         """
         for k, v in cmem_args.items():
             symbol = current_module.get_global(k)
