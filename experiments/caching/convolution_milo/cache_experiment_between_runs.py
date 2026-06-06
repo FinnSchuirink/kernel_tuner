@@ -7,12 +7,15 @@ import numpy as np
 
 DEVICE = "A4000-Ada"
 LANG = "CUDA"
-NUM_ITERATIONS = 1
-RESULTS_LOC = f"results/cache_experiment_between_runs_{DEVICE}_{LANG}.json"
-RESULTS_ITER_LOC = f"results/iter_results/caching/cache_results_between_runs.json"
-PYCACHE = "__pycache__"
-COMPILATION_CACHE_DIR = "compilation_cache"
-BENCHMARK_CACHE = "convolution_milo.json"
+NUM_ITERATIONS = 10
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+RESULTS_LOC = os.path.join(BASE_DIR, "results", "cache_experiment_between_runs.json")
+RESULTS_ITER_LOC = os.path.join(BASE_DIR, "results", "iter_results", "caching", "cache_results_between_run.json")
+PYCACHE = os.path.join(BASE_DIR, "__pycache__")
+COMPILATION_CACHE_DIR = os.path.join(BASE_DIR, "compilation_cache")
+BENCHMARK_CACHE = os.path.join(BASE_DIR, "convolution_milo.json")
 
 def _clear_cache():
     if (os.path.exists(COMPILATION_CACHE_DIR)):

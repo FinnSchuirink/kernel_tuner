@@ -10,6 +10,7 @@ DEVICE = "A4000-Ada"
 LANG = "CUDA"
 NUM_ITERATIONS = 10
 NUM_THREADS = [1, 2, 4, 8, 16, 32, 64]
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 RESULTS_LOC = os.path.join(BASE_DIR, "results", f"parallel_results_{DEVICE}_{LANG}.json")
