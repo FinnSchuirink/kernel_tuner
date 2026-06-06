@@ -592,7 +592,7 @@ def tune_kernel(
     objective=None,
     objective_higher_is_better=None,
     compilation_cache_enabled=False,
-    num_threads=None,
+    num_threads=1,
 ):
     start_overhead_time = perf_counter()
     if log:

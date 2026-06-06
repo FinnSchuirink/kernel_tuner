@@ -349,12 +349,12 @@ class CompilerFunctions(CompilerBackend):
                 ## Extract the function
                 try:
                     func = getattr(lib, name)
-                    return func
+                    return func, None
                 except AttributeError:
                     continue
         except Exception as e:
             logging.warning(f"_load_binary ([C, FORTRAN]): {e}")
-            return None
+            return None, None
         finally:
             ## Remove temporary file
             os.remove(so_file_name)

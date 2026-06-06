@@ -38,7 +38,7 @@ def tune(
     quiet=False,
     lang="CUDA",
     compilation_cache_enabled=False,
-    num_threads=None,
+    num_threads=1,
     runner_mode="Sequential",
 ):
     if lang == "CUDA":
@@ -56,10 +56,10 @@ def tune(
 
     image_width, image_height, filter_width, filter_height = inputs
 
-    tune_params["block_size_x"] = [16 * i for i in range(1, 2)]
-    tune_params["block_size_y"] = [1, 2]
-    tune_params["tile_size_x"] = [1]
-    tune_params["tile_size_y"] = [1, 2]
+    tune_params["block_size_x"] = [16 * i for i in range(1, 17)]
+    tune_params["block_size_y"] = [2**i for i in range(5)]
+    tune_params["tile_size_x"] = [i for i in range(1, 5)]
+    tune_params["tile_size_y"] = [i for i in range(1, 5)]
     tune_params["read_only"] = [0, 1]  # toggle using the read-only cache
 
     # do dry run
@@ -116,7 +116,7 @@ def tune(
     metrics = OrderedDict()
     metrics["GFLOP/s"] = lambda p: total_flops / (p["time"] / 1000.0)
 
-    base_cachepath = f"cachefiles/{device_name.upper()}"
+    base_cachepath = f"{device_name.upper()}"
 
     # start tuning
     start = time.time()
@@ -146,8 +146,8 @@ def tune(
     end = time.time()
     env["execution_time"] = end - start
 
-    store_output_file(f"{base_cachepath}-results.json", results, tune_params)
-    store_metadata_file(f"{base_cachepath}-metadata.json")
+    store_output_file(f"{base_cachepath}-{runner_mode}-results.json", results, tune_params)
+    store_metadata_file(f"{base_cachepath}-{runner_mode}-metadata.json")
     return results, env
 
 

@@ -10,7 +10,7 @@ from kernel_tuner.runners.runner import Runner
 from kernel_tuner.util import ErrorConfig, print_config_output, process_metrics, store_cache
 
 class ParallelRunner(Runner):
-    def __init__(self, kernel_source, kernel_options, device_options, iterations, observers, num_threads, compilation_cache_enabled=False):
+    def __init__(self, kernel_source, kernel_options, device_options, iterations, observers, num_threads=1, compilation_cache_enabled=False):
         """Instantiate the ParallelRunner.
 
             :param kernel_source: The kernel source
@@ -117,10 +117,12 @@ class ParallelRunner(Runner):
             warmup_time = 1e3 * (perf_counter() - warmup_time)
 
         # iterate over parameter space using thread pool
-        max_workers = self.num_threads if self.num_threads is not None else os.cpu_count()
+        max_workers = self.num_threads if self.num_threads > 1 else 1
 
         compile_wall_start = perf_counter()
         with ThreadPoolExecutor(max_workers=max_workers) as batch_executor:
+
+            cached_results = []
 
             # Queue all tasks
             for element in parameter_space:
@@ -133,6 +135,8 @@ class ParallelRunner(Runner):
                     params['compile_time'] = 0
                     params['verification_time'] = 0
                     params['benchmark_time'] = 0
+                    cached_results.append(params)
+
                 else:
                     future_results[batch_executor.submit(self.single_compilation, element, tuning_options)] = element
 
@@ -144,6 +148,7 @@ class ParallelRunner(Runner):
             for future_result in as_completed(future_results):
                 result = None
                 element = future_results[future_result]
+                x_int = ",".join([str(i) for i in element])
                 params = dict(zip(tuning_options.tune_params.keys(), element))
 
                 # Retrieve the result
@@ -168,6 +173,7 @@ class ParallelRunner(Runner):
 
                 # get the framework time by estimating based on other times
                 total_time = 1000 * ((perf_counter() - self.start_time) - warmup_time)
+                params['compile_time'] = self.wall_compile_time
                 params['strategy_time'] = self.last_strategy_time
                 params['framework_time'] = max(total_time - (params['compile_time'] + params['verification_time'] + params['benchmark_time'] + params['strategy_time']), 0)   
                 params['timestamp'] = str(datetime.now(timezone.utc))
@@ -182,5 +188,6 @@ class ParallelRunner(Runner):
 
                 # all visited configurations are added to results to provide a trace for optimization strategies
                 results.append(params)
+            results.extend(cached_results)
 
         return results

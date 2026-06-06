@@ -169,7 +169,7 @@ class CupyFunctions(GPUBackend):
             return func, module
         except Exception as e:
             logging.warning(f"_load_binary (CUDA): {e}")
-            return None
+            return None, None
         finally:
             ## Remove temporary .cubin file
             os.remove(cubin_file_name)

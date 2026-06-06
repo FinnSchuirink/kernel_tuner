@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --ntasks-per-node=32
 #SBATCH --gres=gpu:A4000-Ada:1
-#SBATCH --time=40:00:00
+#SBATCH --time=35:00:00
 #SBATCH --job-name=kernel_tuner_cache_exp
 #SBATCH --output=logs/%j_cache_exp.out
 #SBATCH --error=logs/%j_cache_exp.err
@@ -11,7 +11,7 @@ cd /home/fschuiri/Scriptie/kernel_tuner/experiments/parallel/convolution_milo
 . /etc/bashrc
 . /etc/profile.d/lmod.sh
 
-mkdir -p logs results cachefiles
+mkdir -p logs results
 
 # Correct CUDA module name
 module load cuda12.1/toolkit/12.1

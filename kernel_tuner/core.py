@@ -275,7 +275,7 @@ class DeviceInterface(object):
 
         """
         lang = kernel_source.lang
-        self.requires_warmup = False
+        self.requires_warmup = True
 
         logging.debug("DeviceInterface instantiated, lang=%s", lang)
 
@@ -327,7 +327,7 @@ class DeviceInterface(object):
                 iterations=iterations,
                 compiler_options=compiler_options
             )
-            self.requires_warmup = True
+            self.requires_warmup = False
         else:
             raise NotImplementedError(
                 "Sorry, support for languages other than CUDA, OpenCL, HIP, C, and Fortran is not implemented yet"
@@ -644,10 +644,10 @@ class DeviceInterface(object):
         return result, func, to, instance
 
     def compile_kernel(self, instance, verbose):
+        """Compile the kernel for this specific instance."""
         func = None
         module = None
 
-        """Compile the kernel for this specific instance."""
         logging.debug("compile_kernel " + instance.name)
 
         if (self.compilation_cache_enabled):

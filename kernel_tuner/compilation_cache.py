@@ -37,7 +37,7 @@ class CompilationCache:
         self._hits = 0
         self._misses = 0
         self._index = self._load_index()
-        self._lock = threading.lock()
+        self._lock = threading.Lock()
 
     def put(self, key: str, compiled_binary: bytes, metadata: dict = None):
         """Store the compiled binary in the cache

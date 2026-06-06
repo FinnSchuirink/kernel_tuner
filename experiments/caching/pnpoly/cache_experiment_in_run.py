@@ -22,8 +22,6 @@ def _clear_cache():
 
 
 def _remove_base_cache():
-    if (os.path.exists("cachefiles")):
-        shutil.rmtree("cachefiles")
     if (os.path.exists(PYCACHE)):
         shutil.rmtree(PYCACHE)
     if (os.path.exists(BENCHMARK_CACHE)):

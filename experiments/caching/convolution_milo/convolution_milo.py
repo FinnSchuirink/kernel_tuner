@@ -38,6 +38,7 @@ def tune(
     quiet=False,
     lang="CUDA",
     compilation_cache_enabled=False,
+    num_threads=1,
     runner_mode="Sequential"
 ):
     if lang == "CUDA":
@@ -115,7 +116,7 @@ def tune(
     metrics = OrderedDict()
     metrics["GFLOP/s"] = lambda p: total_flops / (p["time"] / 1000.0)
 
-    base_cachepath = f"cachefiles/{device_name.upper()}"
+    base_cachepath = f"{device_name.upper()}"
 
     # start tuning
     start = time.time()
@@ -140,6 +141,7 @@ def tune(
         strategy_options=strategy_options,
         runner_mode=runner_mode,
         compilation_cache_enabled=compilation_cache_enabled,
+        num_threads=num_threads,
     )
     end = time.time()
     env["execution_time"] = end - start
