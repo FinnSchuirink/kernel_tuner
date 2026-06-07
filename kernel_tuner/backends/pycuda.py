@@ -195,10 +195,6 @@ class PyCudaFunctions(GPUBackend):
     def compile(self, kernel_instance):
         """Call the CUDA compiler to compile the kernel, return the device function.
 
-        :param kernel_name: The name of the kernel to be compiled, used to lookup the
-            function after compilation.
-        :type kernel_name: string
-
         :param kernel_instance: The CUDA kernel code that contains the function `kernel_name`
         :type kernel_instance: kernel_tuner.core.KernelInstance
 
@@ -207,6 +203,9 @@ class PyCudaFunctions(GPUBackend):
 
         :returns cubin: Binary of the CUDA kernel to be saved in the cache
         :rtype cubin: bytes
+
+        :returns current_module: The loaded module
+        :rtype current_module: Pycuda module
         """
 
         kernel_string = kernel_instance.kernel_string
@@ -255,6 +254,8 @@ class PyCudaFunctions(GPUBackend):
         :returns func: An CUDA kernel that can be called directly.
         :rtype func: pycuda.driver.Function
 
+        :returns current_module: The current module loaded in the binary
+        :rtype current_module: pycuda module
         """
         logging.debug("Trying to load PYCUDA binary")
         try:

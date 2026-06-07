@@ -143,18 +143,18 @@ class CudaFunctions(GPUBackend):
     def compile(self, kernel_instance):
         """Call the CUDA compiler to compile the kernel, return the device function.
 
-        :param kernel_name: The name of the kernel to be compiled, used to lookup the
-            function after compilation.
-        :type kernel_name: string
-
-        :param kernel_string: The CUDA kernel code that contains the function `kernel_name`
-        :type kernel_string: string
+        :param kernel_instance: An object representing the specific instance of the tunable kernel
+            in the parameter space.
+        :type kernel_instance: kernel_tuner.core.KernelInstance
 
         :returns self.func: A kernel that can be launched by the CUDA runtime
         :rtype: cuda.CUfunction
 
         :returns buff: The binary of the CUDA kernel, to be saved in the cache.
         :rtype buff: bytes
+
+        :returns current_module: The loaded module
+        :rtype current_module: NVCUDA module
         """
         kernel_string = kernel_instance.kernel_string
         kernel_name = kernel_instance.name
@@ -216,7 +216,9 @@ class CudaFunctions(GPUBackend):
 
         :returns func: A kernel that can be launched by the CUDA runtime
         :rtype: cuda.CUfunction
-        
+
+        :returns module: The module loaded in the binary
+        :rtype module: NVCUDA module 
         """
         logging.debug("Trying to load NVCUDA binary")
 
@@ -228,11 +230,11 @@ class CudaFunctions(GPUBackend):
             _, func = driver.cuModuleGetFunction(module, kernel_instance.name.encode())
 
             # get the number of registers per thread used in this kernel
-            num_regs = driver.cuFuncGetAttribute(driver.CUfunction_attribute.CU_FUNC_ATTRIBUTE_NUM_REGS, self.func)
+            num_regs = driver.cuFuncGetAttribute(driver.CUfunction_attribute.CU_FUNC_ATTRIBUTE_NUM_REGS, func)
             assert num_regs[0] == 0, f"Retrieving number of registers per thread unsuccesful: code {num_regs[0]}"
             self.num_regs = num_regs[1]
             
-            return func, self.current_module
+            return func, module
         except Exception as e:
             logging.warning(f"_load_binary (NVCUDA): {e}")
             return None, None
@@ -272,7 +274,7 @@ class CudaFunctions(GPUBackend):
         :type cmem_args: dict( string: numpy.ndarray, ... )
 
         :param current_module: The module to copy into
-        :type current_module: pycuda module
+        :type current_module: NVCUDA module
         """
         for k, v in cmem_args.items():
             err, symbol, _ = driver.cuModuleGetGlobal(current_module, str.encode(k))
@@ -292,7 +294,7 @@ class CudaFunctions(GPUBackend):
         :type texmem_args: dict
 
         :param current_module: The module to copy into
-        :type current_module: pycuda module
+        :type current_module: NVCUDA module
         """
         raise NotImplementedError("NVIDIA CUDA backend does not support texture memory")
 

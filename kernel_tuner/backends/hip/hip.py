@@ -146,6 +146,9 @@ class HipFunctions(GPUBackend):
     
         :returns code: The binary of the HIP kernel, to be saved in the cache.
         :rtype code: bytes
+
+        :returns module: The loaded module
+        :rtype module: hipModule
         """
         logging.debug("HipFunction compile called")
 
@@ -204,6 +207,9 @@ class HipFunctions(GPUBackend):
 
         :returns func: A HIP kernel function that can be called.
         :rtype func: hipFunction_t
+
+        :returns module: The loaded module
+        :rtype module: hipModule
         
         """
         logging.debug("Trying to load HIP binary")
@@ -345,7 +351,7 @@ class HipFunctions(GPUBackend):
         :type cmem_args: dict(string: numpy.ndarray, ...)
 
         :param current_module: The module to copy into
-        :type current_module: pycuda module
+        :type current_module: hipModule
         """
         logging.debug("HipFunction copy_constant_memory_args called")
 

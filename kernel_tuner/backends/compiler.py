@@ -191,6 +191,12 @@ class CompilerFunctions(CompilerBackend):
 
         :returns: An ctypes function that can be called directly.
         :rtype: ctypes._FuncPtr
+
+        :returns binary: Binary of the compiled kernel
+        :rtype binary: .dylib/.so
+
+        :returns current_module: N.A
+        :rtype current_module: None
         """
         logging.debug("compiling " + kernel_instance.name)
 
@@ -330,6 +336,9 @@ class CompilerFunctions(CompilerBackend):
 
         :returns: An ctypes function that can be called directly.
         :rtype: ctypes._FuncPtr
+
+        :returns current_module: N.A
+        :rtype current_module: None
         
         """
         logging.debug("Trying to load C, FORTRAN binary")

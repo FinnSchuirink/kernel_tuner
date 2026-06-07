@@ -99,18 +99,18 @@ class OpenCLFunctions(GPUBackend):
     def compile(self, kernel_instance):
         """Call the OpenCL compiler to compile the kernel, return the device function.
 
-        :param kernel_name: The name of the kernel to be compiled, used to lookup the
-            function after compilation.
-        :type kernel_name: string
-
-        :param kernel_string: The OpenCL kernel code that contains the function `kernel_name`
-        :type kernel_string: string
+        :param kernel_instance: An object representing the specific instance of the tunable kernel
+            in the parameter space.
+        :type kernel_instance: kernel_tuner.core.KernelInstance
 
         :returns func: An OpenCL kernel that can be called directly.
         :rtype func: pyopencl.Kernel
 
         :returns binary: The binary of the OpenCL kernel
         :rtype binary: bytes
+
+        :returns current_module: N.A
+        :rtype current_module: None
         """
         prg = cl.Program(self.ctx, kernel_instance.kernel_string).build(
             options=self.compiler_options
@@ -132,6 +132,9 @@ class OpenCLFunctions(GPUBackend):
 
         :returns func: An OpenCL kernel that can be called directly.
         :rtype func: pyopencl.Kernel
+
+        :returns current_module: N.A
+        :rtype current_module: None
         
         """
         logging.debug("Trying to load OPENCL binary")

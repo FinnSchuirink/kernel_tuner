@@ -110,15 +110,18 @@ class CupyFunctions(GPUBackend):
     def compile(self, kernel_instance):
         """Call the CUDA compiler to compile the kernel, return the device function.
 
-        :param kernel_name: The name of the kernel to be compiled, used to lookup the
-            function after compilation.
-        :type kernel_name: string
-
-        :param kernel_string: The CUDA kernel code that contains the function `kernel_name`
-        :type kernel_string: string
+        :param kernel_instance: An object representing the specific instance of the tunable kernel
+            in the parameter space.
+        :type kernel_instance: kernel_tuner.core.KernelInstance
 
         :returns self.func: An CUDA kernel that can be called directly.
-        :rtype: cupy.RawKernel
+        :rtype: cupy.RawModule
+
+        :return binary: N.A
+        :rtype binary: None
+
+        :returns current_module: The loaded module
+        :rtype current_module: Cupy.RawModule
         """
         kernel_string = kernel_instance.kernel_string
         kernel_name = kernel_instance.name
@@ -150,7 +153,9 @@ class CupyFunctions(GPUBackend):
 
         :returns func: An CUDA kernel that can be called directly.
         :rtype: cupy.RawKernel
-        
+
+        :returns module: The module loaded in the binary
+        :rtype module: cupy.RawModule 
         """
         logging.debug("Trying to load CUPY binary")
 
@@ -201,7 +206,7 @@ class CupyFunctions(GPUBackend):
         :type cmem_args: dict( string: numpy.ndarray, ... )
 
         :param current_module: The module to copy into
-        :type current_module: pycuda module
+        :type current_module: Cupy.RawModule
         """
         for k, v in cmem_args.items():
             symbol = current_module.get_global(k)
