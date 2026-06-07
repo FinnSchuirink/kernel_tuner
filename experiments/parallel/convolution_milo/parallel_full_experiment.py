@@ -4,7 +4,6 @@ import os
 import time
 import json
 import numpy as np
-import random
 
 DEVICE = "A4000-Ada"
 LANG = "CUDA"

@@ -15,7 +15,7 @@ RESULTS_LOC = os.path.join(BASE_DIR, "results", "cache_experiment_between_runs.j
 RESULTS_ITER_LOC = os.path.join(BASE_DIR, "results", "iter_results", "caching", "cache_results_between_run.json")
 PYCACHE = os.path.join(BASE_DIR, "__pycache__")
 COMPILATION_CACHE_DIR = os.path.join(BASE_DIR, "compilation_cache")
-KT_CACHE = os.path.join(BASE_DIR, "convolution_milo.json")
+KT_CACHE = os.path.join(BASE_DIR, f"{DEVICE.upper()}")
 
 def _clear_cache():
     if (os.path.exists(COMPILATION_CACHE_DIR)):
