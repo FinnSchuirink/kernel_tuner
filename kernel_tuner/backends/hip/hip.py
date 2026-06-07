@@ -219,7 +219,7 @@ class HipFunctions(GPUBackend):
             return func, module
         except Exception as e:
             logging.warning(f"_load_binary (HIP): {e}")
-            return None
+            return None, None
 
     def start_event(self):
         """Records the event that marks the start of a measurement."""

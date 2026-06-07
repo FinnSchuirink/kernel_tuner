@@ -24,7 +24,7 @@ def _clear_cache():
 
 
 def _remove_base_cache():
-    base = f"{DEVICE.upper()}"
+    base = KT_CACHE
     for suffix in [".json", "-results.json", "-metadata.json"]:
         path = base + suffix
         if (os.path.exists(path)):

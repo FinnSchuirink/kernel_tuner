@@ -119,7 +119,7 @@ class OpenCLFunctions(GPUBackend):
         binary = binaries[0]
 
         func = getattr(prg, kernel_instance.name)
-        return func, binary
+        return func, binary, None
     
     def load_binary_to_kernel(self, binary, kernel_instance):
         """Load the OpenCL kernel from the cache binary, return the function
@@ -150,10 +150,10 @@ class OpenCLFunctions(GPUBackend):
 
             ## Extract the function
             func = getattr(program, kernel_instance.name)
-            return func
+            return func, None
         except Exception as e:
             logging.warning(f"_load_binary (OPENCL): {e}")
-            return None
+            return None, None
 
     def start_event(self):
         """Records the event that marks the start of a measurement.

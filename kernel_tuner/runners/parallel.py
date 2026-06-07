@@ -142,7 +142,7 @@ class ParallelRunner(Runner):
 
             ## Wait for all configurations to finish compiling
             wait(future_results)
-            self.wall_compile_time = perf_counter() - compile_wall_start
+            self.wall_compile_time = 1000 * (perf_counter() - compile_wall_start)
 
             # Collect results as they were completed
             for future_result in as_completed(future_results):

@@ -7,7 +7,7 @@ import numpy as np
 
 DEVICE = "A4000-Ada"
 LANG = "CUDA"
-NUM_ITERATIONS = 10
+NUM_ITERATIONS = 3
 NUM_THREADS = [1, 2, 4, 8, 16, 32, 64]
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
