@@ -266,7 +266,6 @@ class PyCudaFunctions(GPUBackend):
 
             ## Extract function
             func = current_module.get_function(kernel_instance.name)
-            func = func
 
             if not isinstance(func, str):
                 self.num_regs = func.num_regs
