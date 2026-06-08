@@ -152,19 +152,22 @@ def main():
         _clear_cache()
         results, env, wall = _single_tune(use_compilation_cache=False)
         no_cache_stats.append(_extract_stats(results, env, wall))
+        no_cache_aggregate = _run_N_times(no_cache_stats)
+
+        _save_iter_results(i + 1, no_cache_aggregate, cold_aggregate, warm_aggregate)
 
         ## Cold cache
         _clear_cache()
         results, env, wall = _single_tune(use_compilation_cache=True)
         cold_stats.append(_extract_stats(results, env, wall))
+        cold_aggregate = _run_N_times(cold_stats)
+        
+        _save_iter_results(i + 1, no_cache_aggregate, cold_aggregate, warm_aggregate)
 
         ## Warm cache
         _remove_base_cache()
         results, env, wall = _single_tune(use_compilation_cache=True)
         warm_stats.append(_extract_stats(results, env, wall))
-
-        no_cache_aggregate = _run_N_times(no_cache_stats)
-        cold_aggregate = _run_N_times(cold_stats)
         warm_aggregate = _run_N_times(warm_stats)
 
         _save_iter_results(i + 1, no_cache_aggregate, cold_aggregate, warm_aggregate)
