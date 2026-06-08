@@ -40,7 +40,7 @@ def tune(compilation_cache_enabled=False):
     # set the number of points and the number of vertices
     size = np.int32(1e5)
     problem_size = (size, 1)
-    vertices = 300
+    vertices = 150
 
     # generate input data
     points = np.random.randn(2*size).astype(np.float32)
@@ -64,8 +64,8 @@ def tune(compilation_cache_enabled=False):
     # setup tunable parameters
     tune_params = {}
     tune_params["block_size_x"] = [32*i for i in range(1,5)]  #multiple of 32
-    tune_params["tile_size"] = [1] + [2*i for i in range(1,3)]
-    tune_params["between_method"] = [0, 1, 2, 3]
+    tune_params["tile_size"] = [1] + [2*i for i in range(1,2)]
+    tune_params["between_method"] = [0, 1]
     tune_params["use_method"] = [0, 1]
     tune_params["loop_unroll_factor_v"] = [0] + [i for i in range(1, vertices+1) if vertices % i == 0]
 

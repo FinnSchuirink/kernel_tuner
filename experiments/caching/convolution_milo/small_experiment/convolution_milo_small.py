@@ -70,13 +70,13 @@ def tune(
     # tune_params["tile_size_y"] = [1]
     # tune_params["read_only"] = [1]    #toggle using the read-only cache
 
-    tune_params["use_padding"] = [0, 1]  # toggle the insertion of padding in shared memory
+    #tune_params["use_padding"] = [0, 1]  # toggle the insertion of padding in shared memory
 
     # added based on cache and T1 file
-    tune_params["use_shmem"] = [0, 1]
-    tune_params["use_cmem"] = [1]
-    tune_params["filter_height"] = [15]
-    tune_params["filter_width"] = [15]
+    #tune_params["use_shmem"] = [0, 1]
+    #tune_params["use_cmem"] = [1]
+    #tune_params["filter_height"] = [15]
+    #tune_params["filter_width"] = [15]
     restrict = [
         "use_padding==0 or block_size_x % 32 != 0",
         "block_size_x*block_size_y<=1024",

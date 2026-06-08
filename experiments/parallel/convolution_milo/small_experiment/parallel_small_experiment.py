@@ -77,8 +77,8 @@ def _calculate_speedup(seq_stats, parallel_stats):
         return a / b if b > 0 else float("NaN")
 
     return {
-        "wallclock": ratio(seq_stats.get("total_wallclock_mean", 1), parallel_stats.get("total_wallclock_mean", 1)),
-        "compile": ratio(seq_stats.get("total_compile_mean", 1), parallel_stats.get("total_compile_mean", 1))
+        "wallclock": ratio(seq_stats.get("total_wallclock_mean", 0), parallel_stats.get("total_wallclock_mean", 0)),
+        "compile": ratio(seq_stats.get("total_compile_mean", 0), parallel_stats.get("total_compile_mean", 0))
     }
 
 
