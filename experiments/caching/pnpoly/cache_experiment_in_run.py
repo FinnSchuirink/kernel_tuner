@@ -1,5 +1,5 @@
 import shutil
-from experiments.caching.pnpoly.pnpoly import tune
+from experiments.caching.pnpoly.small_experiment.pnpoly_small import tune
 import os
 import time
 import json

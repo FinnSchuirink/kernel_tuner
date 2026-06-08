@@ -76,7 +76,7 @@ def tune(compilation_cache_enabled=False):
     cwd = os.path.dirname(os.path.realpath(__file__))
     kernel_file = os.path.join(cwd, "pnpoly.cu")
     results, env = kernel_tuner.tune_kernel("cn_pnpoly", kernel_file, problem_size, args, tune_params, grid_div_x=grid_div_x, cmem_args=c_mem,
-                    verbose=True, strategy="random_sample", cache=os.path.join(cwd, "pnpoly_cache.json"), compilation_cache_enabled=compilation_cache_enabled)
+                    verbose=True, strategy="random_sample", cache=os.path.join(cwd, "pnpoly_cache.json"), compilation_cache_enabled=compilation_cache_enabled, iterations=3)
 
     return results, env
 

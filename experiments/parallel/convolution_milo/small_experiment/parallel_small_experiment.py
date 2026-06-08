@@ -1,5 +1,5 @@
 import shutil
-from experiments.caching.convolution_milo.convolution_milo import tune
+from experiments.parallel.convolution_milo.small_experiment.convolution_milo_small import tune
 import os
 import time
 import json
