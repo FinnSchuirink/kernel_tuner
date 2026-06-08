@@ -99,8 +99,8 @@ def _calculate_speedup(cold, warm):
         return a / b if b > 0 else float("NaN")
     
     return {
-        "wallclock": ratio(cold["total_wallclock_mean"], warm["total_wallclock_mean"]),
-        "compile": ratio(cold["total_compile_mean"], warm["total_compile_mean"])
+        "wallclock": ratio(cold.get("total_wallclock_mean", 1), warm.get("total_wallclock_mean", 1)),
+        "compile": ratio(cold.get("total_compile_mean", 1), warm.get("total_compile_mean", 1))
     }
 
 
