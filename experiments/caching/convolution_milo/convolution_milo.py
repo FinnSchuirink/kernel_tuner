@@ -133,7 +133,7 @@ def tune(
         cache=base_cachepath,
         metrics=metrics,
         lang=lang,
-        iterations=3,
+        iterations=32,
         device=0,
         verbose=verbose,
         quiet=quiet,
