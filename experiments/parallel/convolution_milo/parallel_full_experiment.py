@@ -32,7 +32,7 @@ def _single_tune(runner_mode, num_threads=1):
     return results, env, wall
 
 def _extract_stats(env, wall_time, runner_mode):
-    total_compile = env["total_compile_time"] / 1000.0 if runner_mode == "Sequential" else env["wall_compile_time"]
+    total_compile = env["total_compile_time"] / 1000.0 if runner_mode == "Sequential" else env["wall_compile_time"] / 1000.0
     total_benchmark = env["total_benchmark_time"] / 1000.0
     total_framework = env["total_framework_time"] / 1000.0
     total_strategy = env["total_strategy_time"] / 1000.0

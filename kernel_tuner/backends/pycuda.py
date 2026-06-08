@@ -260,10 +260,7 @@ class PyCudaFunctions(GPUBackend):
         logging.debug("Trying to load PYCUDA binary")
         try:
             ## Get module from saved binary
-            mod = drv.module_from_buffer(binary)
-
-            ## Update the current module
-            current_module = mod
+            current_module = drv.module_from_buffer(binary)
 
             ## Extract function
             func = current_module.get_function(kernel_instance.name)
