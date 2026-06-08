@@ -128,7 +128,7 @@ def main():
         ##sequential_stats.append(iter_results[seq_runner])
 
     ##sequential_aggregate = _run_N_times(sequential_stats)
-    sequential_aggregate = []
+    sequential_aggregate = {}
 
     for num_threads in NUM_THREADS:
         parallel_stats = []

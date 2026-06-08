@@ -116,7 +116,8 @@ def tune(
     metrics = OrderedDict()
     metrics["GFLOP/s"] = lambda p: total_flops / (p["time"] / 1000.0)
 
-    base_cachepath = f"{device_name.upper()}"
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    base_cachepath = os.path.join(BASE_DIR, device_name.upper())
 
     # start tuning
     start = time.time()

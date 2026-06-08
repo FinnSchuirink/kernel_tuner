@@ -95,8 +95,8 @@ def _calculate_speedup(cold, warm):
         return a / b if b > 0 else float("NaN")
     
     return {
-        "wallclock": ratio(cold["total_wallclock_mean"], warm["total_wallclock_mean"]),
-        "compile": ratio(cold["total_compile_mean"], warm["total_compile_mean"])
+        "wallclock": ratio(cold.get("total_wallclock_mean", 0), warm.get("total_wallclock_mean", 0)),
+        "compile": ratio(cold.get("total_compile_mean", 0), warm.get("total_compile_mean", 0))
     }
 
 
@@ -138,13 +138,14 @@ def main():
         _clear_cache()
         results, env, wall = _single_tune(use_compilation_cache=False)
         no_cache_stats.append(_extract_stats(results, env, wall))
+        no_cache_aggregate = _run_N_times(no_cache_stats)
+
+        _save_iter_results(i + 1, no_cache_aggregate, cache_aggregate)
 
         ## Cache
         _clear_cache()
         results, env, wall = _single_tune(use_compilation_cache=True)
         cache_stats.append(_extract_stats(results, env, wall))
-
-        no_cache_aggregate = _run_N_times(no_cache_stats)
         cache_aggregate = _run_N_times(cache_stats)
 
         _save_iter_results(i + 1, no_cache_aggregate, cache_aggregate)

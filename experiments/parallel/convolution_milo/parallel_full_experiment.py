@@ -72,15 +72,14 @@ def _run_N_times(stats):
 
     return aggregate
 
-def _calculate_speedup(seq_stats, parallel_stats):
+def _calculate_speedup(cold, warm):
     def ratio(a, b):
         return a / b if b > 0 else float("NaN")
-
+    
     return {
-        "wallclock": ratio(seq_stats["total_wallclock_mean"], parallel_stats["total_wallclock_mean"]),
-        "compile": ratio(seq_stats["total_compile_mean"], parallel_stats["total_compile_mean"])
+        "wallclock": ratio(cold.get("total_wallclock_mean", 0), warm.get("total_wallclock_mean", 0)),
+        "compile": ratio(cold.get("total_compile_mean", 0), warm.get("total_compile_mean", 0))
     }
-
 
 def _save_results(threaded_results):
     os.makedirs(os.path.dirname(RESULTS_LOC), exist_ok=True)
@@ -116,6 +115,9 @@ def main():
     threaded_results = {}
     sequential_stats = []
 
+    sequential_aggregate = {}
+    parallel_aggregate = {}
+
     seq_runner = "Sequential"
     parallel_runner = "Parallel"
 
@@ -128,7 +130,8 @@ def main():
 
         sequential_stats.append(iter_results[seq_runner])
 
-    sequential_aggregate = _run_N_times(sequential_stats)
+        sequential_aggregate = _run_N_times(sequential_stats)
+        _save_iter_results(i + 1, sequential_aggregate, parallel_aggregate, 0)
 
     for num_threads in NUM_THREADS:
         parallel_stats = []

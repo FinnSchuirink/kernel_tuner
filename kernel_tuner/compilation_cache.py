@@ -141,7 +141,8 @@ class CompilationCache:
         if cc:
             h.update(str(cc).encode())
         if (threads):
-            h.update(str(threads).encode())
+            h.update(str(threads[1]).encode())
+            h.update(str(threads[2]).encode())
 
         # Create valid indexing key 
         return h.hexdigest()
