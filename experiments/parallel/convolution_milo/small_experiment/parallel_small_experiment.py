@@ -119,16 +119,15 @@ def main():
     seq_runner = "Sequential"
     parallel_runner = "Parallel"
 
-    for i in range(NUM_ITERATIONS):
-        iter_results = {}
-        _remove_base_cache()
+    ##for i in range(NUM_ITERATIONS):
+        ##iter_results = {}
+        ##_remove_base_cache()
 
-        _, env, wall = _single_tune(runner_mode=seq_runner)
-        iter_results[seq_runner] = _extract_stats(env, wall, seq_runner)
+        ##iter_results[seq_runner] = _extract_stats(env, wall, seq_runner)
 
-        sequential_stats.append(iter_results[seq_runner])
+        ##sequential_stats.append(iter_results[seq_runner])
 
-    sequential_aggregate = _run_N_times(sequential_stats)
+    ##sequential_aggregate = _run_N_times(sequential_stats)
 
     for num_threads in NUM_THREADS:
         parallel_stats = []
