@@ -40,7 +40,7 @@ def tune(compilation_cache_enabled=False):
     # set the number of points and the number of vertices
     size = np.int32(1e5)
     problem_size = (size, 1)
-    vertices = 150
+    vertices = 100
 
     # generate input data
     points = np.random.randn(2*size).astype(np.float32)
@@ -63,11 +63,14 @@ def tune(compilation_cache_enabled=False):
 
     # setup tunable parameters
     tune_params = {}
-    tune_params["block_size_x"] = [32*i for i in range(1,5)]  #multiple of 32
-    tune_params["tile_size"] = [1] + [2*i for i in range(1,2)]
-    tune_params["between_method"] = [0, 1]
-    tune_params["use_method"] = [0, 1]
-    tune_params["loop_unroll_factor_v"] = [0] + [i for i in range(1, vertices+1) if vertices % i == 0]
+    tune_params["block_size_x"]          = [32 * i for i in range(1, 9)]  # 8 values
+    tune_params["tile_size"]             = [1, 2]                          # 2 values
+    tune_params["between_method"]        = [0, 1]                          # 2 values
+    tune_params["use_method"]            = [0, 1]                          # 2 values
+    tune_params["loop_unroll_factor_v"]  = [
+        v for v in [0, 1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60]
+        if v == 0 or vertices % v == 0
+    ]
 
     # tell Kernel Tuner how to compute the grid dimensions from the problem_size
     grid_div_x = ["block_size_x", "tile_size"]

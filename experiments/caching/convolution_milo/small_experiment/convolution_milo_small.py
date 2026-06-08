@@ -56,11 +56,11 @@ def tune(
 
     image_width, image_height, filter_width, filter_height = inputs
 
-    tune_params["block_size_x"] = [16 * i for i in range(1, 4)]
-    tune_params["block_size_y"] = [2**i for i in range(5)]
-    tune_params["tile_size_x"] = [i for i in range(1, 3)]
-    tune_params["tile_size_y"] = [i for i in range(1, 3)]
-    tune_params["read_only"] = [0, 1]  # toggle using the read-only cache
+    tune_params["block_size_x"] = [16, 32, 64]
+    tune_params["block_size_y"] = [1, 2, 4, 8]
+    tune_params["tile_size_x"]  = [1, 2]
+    tune_params["tile_size_y"]  = [1, 2]
+    tune_params["read_only"]    = [0, 1]
 
     # do dry run
     # tune_params["nvml_gr_clock"] = [2100]
@@ -78,12 +78,8 @@ def tune(
     #tune_params["filter_height"] = [15]
     #tune_params["filter_width"] = [15]
     restrict = [
-        "use_padding==0 or block_size_x % 32 != 0",
-        "block_size_x*block_size_y<=1024",
-        "use_padding==0 or use_shmem != 0",
-        "use_shmem == 0 or (((block_size_x*tile_size_x+(filter_width-1)))*((block_size_y*tile_size_y+(filter_height-1)))) < 12*1024",
+        "block_size_x * block_size_y <= 1024",
     ]
-
     # # limit the search to only use padding when its effective
     # restrict = [
     #     "(use_padding==0 or (block_size_x % 32 != 0))",
@@ -116,7 +112,8 @@ def tune(
     metrics = OrderedDict()
     metrics["GFLOP/s"] = lambda p: total_flops / (p["time"] / 1000.0)
 
-    base_cachepath = f"{device_name.upper()}"
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    base_cachepath = os.path.join(BASE_DIR, device_name.upper())
 
     # start tuning
     start = time.time()
