@@ -67,10 +67,7 @@ def tune(compilation_cache_enabled=False):
     tune_params["tile_size"]             = [1, 2]                          # 2 values
     tune_params["between_method"]        = [0, 1]                          # 2 values
     tune_params["use_method"]            = [0, 1]                          # 2 values
-    tune_params["loop_unroll_factor_v"]  = [
-        v for v in [0, 1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60]
-        if v == 0 or vertices % v == 0
-    ]
+    tune_params["loop_unroll_factor_v"] = [0] + [i for i in range(1, vertices+1) if vertices % i == 0]
 
     # tell Kernel Tuner how to compute the grid dimensions from the problem_size
     grid_div_x = ["block_size_x", "tile_size"]

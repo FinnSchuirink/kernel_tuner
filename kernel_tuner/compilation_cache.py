@@ -99,7 +99,7 @@ class CompilationCache:
             return binary_path.read_bytes()
     
     @staticmethod
-    def make_cache_key(kernel_string: str, backend: str, device: str, flags: list[str], cuda_version=None, cc=None) -> str:
+    def make_cache_key(kernel_string: str, backend: str, device: str, flags: list[str], cuda_version=None, cc=None, threads=None) -> str:
 
         """Function that creates a uniquely identifiable hash for each different kernel
         :param kernel_string: Stringified kernel
@@ -119,9 +119,10 @@ class CompilationCache:
 
         :param cc: Compute Capabilities
         :type cc: int
-        """
 
-        # FIXME: Let user determinate which parameter is essential for recompilation (higher clock frequency)
+        :param threads: Thread dimensions
+        :type threads: 3-tuple
+        """
         
         # Deterministic hashing to uniquely identify kernels
         h = hashlib.sha256()
@@ -139,6 +140,8 @@ class CompilationCache:
             h.update(str(cuda_version).encode())
         if cc:
             h.update(str(cc).encode())
+        if (threads):
+            h.update(str(threads).encode())
 
         # Create valid indexing key 
         return h.hexdigest()

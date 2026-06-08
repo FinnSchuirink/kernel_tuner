@@ -661,6 +661,7 @@ class DeviceInterface(object):
                 flags=self.compiler_options,
                 cuda_version=str(cuda_vers),
                 cc=str(c_c),
+                threads=instance.threads,
             )
 
             compiled_binary = self.compilation_cache.get(cache_key)
