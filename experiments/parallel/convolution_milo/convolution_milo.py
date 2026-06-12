@@ -116,9 +116,6 @@ def tune(
     metrics = OrderedDict()
     metrics["GFLOP/s"] = lambda p: total_flops / (p["time"] / 1000.0)
 
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    base_cachepath = os.path.join(BASE_DIR, device_name.upper())
-
     # start tuning
     start = time.time()
     results, env = kernel_tuner.tune_kernel(
@@ -131,7 +128,6 @@ def tune(
         grid_div_x=grid_div_x,
         cmem_args=cmem_args,
         restrictions=restrict,
-        cache=base_cachepath,
         metrics=metrics,
         lang=lang,
         iterations=32,
@@ -147,8 +143,6 @@ def tune(
     end = time.time()
     env["execution_time"] = end - start
 
-    store_output_file(f"{base_cachepath}-{runner_mode}-results.json", results, tune_params)
-    store_metadata_file(f"{base_cachepath}-{runner_mode}-metadata.json")
     return results, env
 
 

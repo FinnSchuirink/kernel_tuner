@@ -13,21 +13,16 @@ RESULTS_LOC = os.path.join(BASE_DIR, "results", "cache_experiment_in_run.json")
 RESULTS_ITER_LOC = os.path.join(BASE_DIR, "results", "iter_results", "caching", "cache_results_in_run.json")
 PYCACHE = os.path.join(BASE_DIR, "__pycache__")
 COMPILATION_CACHE_DIR = os.path.join(BASE_DIR, "compilation_cache")
-BENCHMARK_CACHE = os.path.join(BASE_DIR, "pnpoly_cache.json")
 
 def _clear_cache():
     if (os.path.exists(COMPILATION_CACHE_DIR)):
         shutil.rmtree(COMPILATION_CACHE_DIR)
     _remove_base_cache()
 
-
 def _remove_base_cache():
     if (os.path.exists(PYCACHE)):
         shutil.rmtree(PYCACHE)
-    if (os.path.exists(BENCHMARK_CACHE)):
-        os.remove(BENCHMARK_CACHE)
     
-
 def _single_tune(use_compilation_cache: bool):
     start = time.perf_counter()
     results, env = tune(compilation_cache_enabled=use_compilation_cache)

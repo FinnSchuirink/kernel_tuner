@@ -14,14 +14,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 RESULTS_LOC = os.path.join(BASE_DIR, "results", f"parallel_results_{DEVICE}_{LANG}.json")
 PYCACHE = os.path.join(BASE_DIR, "__pycache__")
-KT_CACHE = os.path.join(BASE_DIR, DEVICE.upper())
 
 def _remove_base_cache():
-    base = KT_CACHE
-    for suffix in [".json", "-Sequential-results.json", "-Parallel-results.json", "-Parallel-metadata.json", "-Sequential-metadata.json"]:
-        path = base + suffix
-        if (os.path.exists(path)):
-            os.remove(path)
     if (os.path.exists(PYCACHE)):
         shutil.rmtree(PYCACHE)
 
