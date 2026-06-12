@@ -728,7 +728,9 @@ class DeviceInterface(object):
             raw_kernel_string = instance.kernel_source.get_kernel_string(0)
 
             # Exclude parameters that don't influence the compiled binary.
-            runtime_params = ["block_size_x", "block_size_y", "block_size_z", "grid_size_x", "grid_size_y", "grid_size_z"]
+            #runtime_params = ["block_size_x", "block_size_y", "block_size_z", "grid_size_x", "grid_size_y", "grid_size_z"]
+            
+            runtime_params = []
 
             compile_time_params = {k: v for k, v in instance.params.items() if k not in runtime_params}
 
