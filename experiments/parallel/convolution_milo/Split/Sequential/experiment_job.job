@@ -6,6 +6,7 @@
 #SBATCH --output=logs/%j_cache_exp.out
 #SBATCH --error=logs/%j_cache_exp.err
 
+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR"
 
@@ -17,11 +18,10 @@ mkdir -p logs results
 # Correct CUDA module name
 module load cuda12.1/toolkit/12.1
 
-# Use local kernel_tuner
-KT_ROOT="$( cd "$SCRIPT_DIR/../../.." && pwd )"
+KT_ROOT="$( cd "$SCRIPT_DIR/../../../.." && pwd )"
 export PYTHONPATH="$KT_ROOT:$PYTHONPATH"
 
-python3.12 cache_experiment_between_runs.py
+python3.12 parallel_full_experiment.py
 EXITCODE=$?
 
 exit $EXITCODE
