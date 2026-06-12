@@ -6,9 +6,7 @@
 #SBATCH --output=logs/%j_cache_exp.out
 #SBATCH --error=logs/%j_cache_exp.err
 
-
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd "$SCRIPT_DIR"
+cd /home/fschuiri/Scriptie/kernel_tuner/experiments/parallel/convolution_milo/Split/1
 
 . /etc/bashrc
 . /etc/profile.d/lmod.sh
@@ -18,8 +16,8 @@ mkdir -p logs results
 # Correct CUDA module name
 module load cuda12.1/toolkit/12.1
 
-KT_ROOT="$( cd "$SCRIPT_DIR/../../../.." && pwd )"
-export PYTHONPATH="$KT_ROOT:$PYTHONPATH"
+# Use local kernel_tuner
+export PYTHONPATH=/home/fschuiri/Scriptie/kernel_tuner:$PYTHONPATH
 
 python3.12 parallel_full_experiment.py
 EXITCODE=$?
