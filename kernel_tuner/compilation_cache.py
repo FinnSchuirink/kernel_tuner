@@ -16,19 +16,19 @@ class CompilationCache:
     def __init__(self, cache_dir: str = "compilation_cache"):
         """Initialize the cache
 
-            :param cache_dir: Stringified directory name for the cache, default to "compilation cache
+            :param cache_dir: Stringified directory name for the cache, default to "compilation cache"
             :type cache_dir: str
 
             :param index_path: Stringified path to the index file
             :type index_path: str
 
-            :param _hits: Number of cache hits
+            :attribute _hits: Number of cache hits
             :type _hits: int
 
-            :param _misses: Number of cache misses
+            :attribute _misses: Number of cache misses
             :type _misses: int
 
-            :param _index: Dictionary of cache entries
+            :attribute _index: Dictionary of cache entries
             :type _index: dict
         """
         self._cache_dir = Path(cache_dir)
@@ -51,6 +51,7 @@ class CompilationCache:
         :param metadata: Meta data about the file, for debugging purposes (backend, device, flags, ...)
         :type metadata: dict
         """
+        
         with self._lock:
             cache_filename = key + ".bin"
 
@@ -99,7 +100,7 @@ class CompilationCache:
             return binary_path.read_bytes()
     
     @staticmethod
-    def make_cache_key(kernel_string: str, backend: str, device: str, flags: list[str], cuda_version=None, cc=None, threads=None) -> str:
+    def make_cache_key(kernel_string: str, backend: str, device: str, flags: list[str], compile_params: dict = None, cuda_version: str = None, cc: str = None) -> str:
 
         """Function that creates a uniquely identifiable hash for each different kernel
         :param kernel_string: Stringified kernel
@@ -114,35 +115,37 @@ class CompilationCache:
         :param flags: List of compilation flags
         :type flags: list[str]
 
+        :param compile_params: All parameters changing the compiled kernel binary
+        :type compile_params: dict
+
         :param cuda_version: CUDA driver version
         :type cuda_version: int
 
         :param cc: Compute Capabilities
         :type cc: int
 
-        :param threads: Thread dimensions
-        :type threads: 3-tuple
         """
         
         # Deterministic hashing to uniquely identify kernels
         h = hashlib.sha256()
 
         ## Create the hash by converting string into bytes
-        h.update(kernel_string.encode())
-        h.update(backend.encode())
-        h.update(str(device).encode())
+        h.update(kernel_string.encode(errors='xmlcharrefreplace'))
+        h.update(backend.encode(errors='xmlcharrefreplace'))
+        h.update(str(device).encode(errors='xmlcharrefreplace'))
 
         # Sort flags as compiler flags are commutative
         for flag in sorted(flags or []):
-            h.update(flag.encode())
+            h.update(flag.encode(errors='xmlcharrefreplace'))
+
+        for k in sorted((compile_params or {}).keys()):
+            h.update(str(k).encode(errors='xmlcharrefreplace'))
+            h.update(str(compile_params[k]).encode(errors='xmlcharrefreplace'))
 
         if cuda_version:
-            h.update(str(cuda_version).encode())
+            h.update(str(cuda_version).encode(errors='xmlcharrefreplace'))
         if cc:
-            h.update(str(cc).encode())
-        if (threads):
-            h.update(str(threads[1]).encode())
-            h.update(str(threads[2]).encode())
+            h.update(str(cc).encode(errors='xmlcharrefreplace'))
 
         # Create valid indexing key 
         return h.hexdigest()

@@ -264,9 +264,6 @@ class DeviceInterface(object):
         :param iterations: Number of iterations to be used when benchmarking using this device.
         :type iterations: int
 
-        :param times: Return the execution time of all iterations.
-        :type times: bool
-
         :param compilation_cache_enabled: Whether or not to use the compilation cache
         :type compilation_cache_enabled: bool
 
@@ -452,7 +449,27 @@ class DeviceInterface(object):
                 self.tegra.gr_clock = instance.params["tegra_gr_clock"]
 
     def benchmark(self, func, gpu_args, instance, verbose, objective, skip_nvml_setting=False):
-        """Benchmark the kernel instance."""
+        """Benchmarks a compiled kernel instance and returns the results 
+        
+        :param func: The compiled kernel
+        :type func: device function or None
+
+        :param gpu_args: List of GPU arguments to be passed to the kernel
+        :type gpu_args: list
+
+        :param instance: The kernel instance created for this configuration
+        :type instance: kernel_tuner.core.KernelInstance
+
+        :param verbose: Enable verbose printing of sampled frequencies and power consumption
+        :type verbose: bool
+
+        :param objective: The objective used during auto-tuning, default is 'time'.
+        :type objective: string
+
+        :param skip_nvml_settings: Whether to skip nvml settings
+        :type skip_nvml_settings: bool
+
+        """
         logging.debug("benchmark " + instance.name)
         logging.debug("thread block dimensions x,y,z=%d,%d,%d", *instance.threads)
         logging.debug("grid dimensions x,y,z=%d,%d,%d", *instance.grid)
@@ -565,6 +582,28 @@ class DeviceInterface(object):
             raise RuntimeError("Kernel result verification failed for: " + util.get_config_string(instance.params))
     
     def benchmark_kernel(self, instance, func, gpu_args, to, result):
+        """ Benchmark a previously compiled kernel and record timing metrics
+
+        :param instance: The kernel instance created for this configuration
+        :type instance: kernel_tuner.core.KernelInstance
+
+        :param func: The compiled kernel
+        :type func: device function or None
+
+        :param gpu_args: List of GPU arguments to be passed to the kernel
+        :type gpu_args: list
+
+        :param to: Tuple containing tuning optiokns
+        :type to: tuple
+
+        :param result: Dictionary containing a part of the timing metrics
+        :type result: dict
+
+        :returns result: A dictionary containing timing metrics
+        :rtype results: dict
+
+        """
+
         # reset previous benchmark timer
         last_benchmark_time = None
 
@@ -584,7 +623,39 @@ class DeviceInterface(object):
         return result
 
     def compile(self, kernel_source, gpu_args, params, kernel_options, to):
-        ## Reset previous timers
+        """Compiles a passed kernel instance for the given parameters
+            
+        :param kernel_source: The kernel sources
+        :type kernel_source: kernel_tuner.core.KernelSource
+
+        :param gpu_args: List of GPU arguments to be passed to the kernel
+        :type gpu_args: list
+
+        :param params: A dictionary with the tunable parameters for this particular
+            instance.
+        :type params: dict()
+            
+        :param kernel_options: Tuple containing kernel launch options
+        :type kernel_options: tuple
+        
+        :param to: Tuple containing tuning optiokns
+        :type to: tuple
+
+        :returns result: A dictionary containing timing metrics
+        :rtype result: dict
+
+        :returns func: The compiled kernel
+        :rtype func: device function or None
+
+        :param to: Tuple containing tuning optiokns
+        :type to: tuple
+
+        :returns instance: The kernel instance created for this configuration
+        :rtype instance: kernel_tuner.core.KernelInstance
+
+        """
+
+        ## Initialize previous timers
         last_compilation_time = None
         last_verification_time = None
         verbose = to.verbose
@@ -653,18 +724,26 @@ class DeviceInterface(object):
         if (self.compilation_cache_enabled):
             c_c = getattr(self.dev, "env", {}).get("compute_capability")
             cuda_vers = getattr(self.dev, "env", {}).get("cuda_version")
+            
+            raw_kernel_string = instance.kernel_source.get_kernel_string(0)
+
+            # Exclude parameters that don't influence the compiled binary.
+            runtime_params = ["block_size_x", "block_size_y", "block_size_z", "grid_size_x", "grid_size_y", "grid_size_z"]
+
+            compile_time_params = {k: v for k, v in instance.params.items() if k not in runtime_params}
 
             cache_key = CompilationCache.make_cache_key(
-                kernel_string=instance.kernel_string,
+                kernel_string=raw_kernel_string,
                 backend=self.lang,
                 device=self.dev.name,
                 flags=self.compiler_options,
                 cuda_version=str(cuda_vers),
                 cc=str(c_c),
-                threads=instance.threads,
+                compile_params=compile_time_params
             )
 
             compiled_binary = self.compilation_cache.get(cache_key)
+
             if (compiled_binary is not None):
                 ## Load the binary 
                 func, module = self.dev.load_binary_to_kernel(binary=compiled_binary, kernel_instance=instance)

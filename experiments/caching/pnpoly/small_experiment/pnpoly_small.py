@@ -67,7 +67,7 @@ def tune(compilation_cache_enabled=False):
     tune_params["tile_size"]             = [1, 2]                          # 2 values
     tune_params["between_method"]        = [0, 1]                          # 2 values
     tune_params["use_method"]            = [0, 1]                          # 2 values
-    tune_params["loop_unroll_factor_v"] = [0] + [i for i in range(1, vertices+1) if vertices % i == 0]
+    tune_params["loop_unroll_factor_v"] = [0] #+ [i for i in range(1, vertices+1) if vertices % i == 0]
 
     # tell Kernel Tuner how to compute the grid dimensions from the problem_size
     grid_div_x = ["block_size_x", "tile_size"]
@@ -76,7 +76,7 @@ def tune(compilation_cache_enabled=False):
     cwd = os.path.dirname(os.path.realpath(__file__))
     kernel_file = os.path.join(cwd, "pnpoly_small.cu")
     results, env = kernel_tuner.tune_kernel("cn_pnpoly", kernel_file, problem_size, args, tune_params, grid_div_x=grid_div_x, cmem_args=c_mem,
-                    verbose=True, strategy="random_sample", cache=os.path.join(cwd, "pnpoly_cache.json"), compilation_cache_enabled=compilation_cache_enabled, iterations=3)
+                    verbose=True, strategy="random_sample", compilation_cache_enabled=compilation_cache_enabled, iterations=3)
 
     return results, env
 
