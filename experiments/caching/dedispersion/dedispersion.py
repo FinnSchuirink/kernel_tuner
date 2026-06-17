@@ -102,8 +102,7 @@ def tune():
 
 
     results, env = kt.tune_kernel("dedispersion_kernel", "dedispersion.cu", problem_size, args, tune_params,
-                                  answer=answer, compiler_options=cp, restrictions=config_valid,
-                                  cache="dedisp_cache.json", strategy="random_sample", metrics=metrics)
+                                  answer=answer, compiler_options=cp, restrictions=config_valid, strategy="random_sample", metrics=metrics)
 
 
 

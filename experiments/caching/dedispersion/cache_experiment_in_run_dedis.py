@@ -8,7 +8,7 @@ import time
 
 NUM_ITERATIONS = 10
 
-COMPILE = 1
+COMPILE = str(1)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
