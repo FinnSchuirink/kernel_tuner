@@ -232,8 +232,7 @@ class PyCudaFunctions(GPUBackend):
             current_module = drv.module_from_buffer(cubin)
 
             func = current_module.get_function(kernel_name)
-            if not isinstance(func, str):
-                self.num_regs = func.num_regs
+ 
             return func, cubin, current_module
         
         except drv.CompileError as e:
@@ -264,9 +263,6 @@ class PyCudaFunctions(GPUBackend):
 
             ## Extract function
             func = current_module.get_function(kernel_instance.name)
-
-            if not isinstance(func, str):
-                self.num_regs = func.num_regs
                 
             return func, current_module
         except Exception as e:

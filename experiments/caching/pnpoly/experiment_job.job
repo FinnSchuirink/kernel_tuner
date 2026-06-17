@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --ntasks-per-node=32
 #SBATCH --gres=gpu:A4000-Ada:1
-#SBATCH --time=72:00:00
+#SBATCH --time=12:00:00
 #SBATCH --job-name=kernel_tuner_cache_in_run_exp
 #SBATCH --output=logs/%j_cache_exp_in_run.out
 #SBATCH --error=logs/%j_cache_exp_in_run.err

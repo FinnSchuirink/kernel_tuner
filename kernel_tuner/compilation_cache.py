@@ -106,7 +106,7 @@ class CompilationCache:
         :param kernel_string: Stringified kernel
         :type kernel_string: str
 
-        :param backend: 'PyCuda', 'CuPY', 'OpenCL', 'NVCC'
+        :param backend: 'PyCuda', 'CuPY', 'OpenCL', 'NVCC', ...
         :type backend: str
 
         :param device: CUDA/OpenCL device to use
@@ -119,10 +119,10 @@ class CompilationCache:
         :type compile_params: dict
 
         :param cuda_version: CUDA driver version
-        :type cuda_version: int
+        :type cuda_version: str
 
         :param cc: Compute Capabilities
-        :type cc: int
+        :type cc: str
 
         """
         
