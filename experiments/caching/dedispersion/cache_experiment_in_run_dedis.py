@@ -7,14 +7,12 @@ import numpy as np
 
 NUM_ITERATIONS = 10
 
-COMPILE = str(1)
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-RESULTS_LOC = os.path.join(BASE_DIR, COMPILE, "results", "cache_experiment_in_run.json")
-RESULTS_ITER_LOC = os.path.join(BASE_DIR, COMPILE, "results", "iter_results", "cache_results_in_run.json")
-PYCACHE = os.path.join(BASE_DIR, COMPILE, "__pycache__")
-COMPILATION_CACHE_DIR = os.path.join(BASE_DIR, COMPILE, "compilation_cache")
+RESULTS_LOC = os.path.join(BASE_DIR, "results", "cache_experiment_in_run.json")
+RESULTS_ITER_LOC = os.path.join(BASE_DIR, "results", "iter_results", "cache_results_in_run.json")
+PYCACHE = os.path.join(BASE_DIR, "__pycache__")
+COMPILATION_CACHE_DIR = os.path.join(BASE_DIR, "compilation_cache")
 
 def _clear_cache():
     if (os.path.exists(COMPILATION_CACHE_DIR)):
