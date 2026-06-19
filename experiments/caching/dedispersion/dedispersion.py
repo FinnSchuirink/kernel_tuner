@@ -53,7 +53,7 @@ def create_reference():
     np.save("shifts_ref", shifts, allow_pickle=False)
     np.save("dedisp_ref", reference[1], allow_pickle=False)
 
-def tune():
+def tune(compilation_cache_enabled=False):
 
     input_samples = np.load("input_ref.npy")
     output_arr = np.zeros(nr_dms*nr_samples, dtype=np.float32)
@@ -100,9 +100,10 @@ def tune():
     metrics["GB/s"] = lambda p: gbytes / (p['time'] / 1e3)
 
 
-
-    results, env = kt.tune_kernel("dedispersion_kernel", "dedispersion.cu", problem_size, args, tune_params,
-                                  answer=answer, compiler_options=cp, restrictions=config_valid, strategy="random_sample", metrics=metrics)
+    cwd = os.path.dirname(os.path.realpath(__file__))
+    kernel_file = os.path.join(cwd, "dedispersion.cu")
+    results, env = kt.tune_kernel("dedispersion_kernel", kernel_file, problem_size, args, tune_params,
+                                  answer=answer, compiler_options=cp, restrictions=config_valid, strategy="random_sample", metrics=metrics, compilation_cache_enabled=compilation_cache_enabled)
 
 
 
