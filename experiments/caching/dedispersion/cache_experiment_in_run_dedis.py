@@ -4,7 +4,6 @@ import os
 import time
 import json
 import numpy as np
-import time
 
 NUM_ITERATIONS = 10
 
