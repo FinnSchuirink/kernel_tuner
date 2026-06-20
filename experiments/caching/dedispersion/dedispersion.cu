@@ -64,7 +64,7 @@ void __global__ dedispersion_naive(const unsigned char * input, float * output, 
 #define x_stride 1
 #define thread_x_stride tile_size_x
 #else
-#define x_stride block_size_x
+#define x_stride blockDim.x
 #define thread_x_stride 1
 #endif
 
@@ -72,7 +72,7 @@ void __global__ dedispersion_naive(const unsigned char * input, float * output, 
 #define y_stride 1
 #define thread_y_stride tile_size_y
 #else
-#define y_stride block_size_y
+#define y_stride blockDim.y
 #define thread_y_stride 1
 #endif
 
