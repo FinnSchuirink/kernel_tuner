@@ -104,7 +104,7 @@ def tune(compilation_cache_enabled=False):
     kernel_file = os.path.join(cwd, "dedispersion.cu")
     results, env = kt.tune_kernel("dedispersion_kernel", kernel_file, problem_size, args, tune_params,
                                   answer=answer, compiler_options=cp, restrictions=config_valid, strategy="random_sample", metrics=metrics, compilation_cache_enabled=compilation_cache_enabled)
-
+    return results, env
 
 
 
