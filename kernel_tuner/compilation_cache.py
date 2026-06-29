@@ -5,7 +5,7 @@ from pathlib import Path
 import threading
 
 class CompilationCache:
-    """Class to build a compilation cache that re-uses kernels, if the kernel exists
+    """Thread-safe compilation cache that stores and retrieves compiled kernel binaries.
 
         Cache directory:
             <cache_dir>/
@@ -50,6 +50,8 @@ class CompilationCache:
 
         :param metadata: Meta data about the file, for debugging purposes (backend, device, flags, ...)
         :type metadata: dict
+
+        :returns: None
         """
         
         with self._lock:
@@ -75,14 +77,19 @@ class CompilationCache:
 
         :param key: The deterministic key for the compiled binary (using make_cache_key)
         :type key: str
+
+        :returns file_bytes: Bytes of the cached file
+        :rtype file_bytes: bytes|None
         """
+
+        file_bytes = None
 
         with self._lock:
             ## Binary not in cache
             if (key not in self._index):
                 self._misses += 1
-                return None
-            
+                return file_bytes
+                      
             ## Full path to the desired binary
             cache_entry = self._index[key]
             cache_file = cache_entry["filename"]
@@ -93,11 +100,12 @@ class CompilationCache:
             if (not os.path.exists(binary_path)):
                 del self._index[key]
                 self._misses += 1
-                return None
+                return file_bytes
 
             ## Hit -> Get binary
             self._hits += 1
-            return binary_path.read_bytes()
+            file_bytes = binary_path.read_bytes()
+            return file_bytes
     
     @staticmethod
     def make_cache_key(kernel_string: str, backend: str, device: str, flags: list[str], compile_params: dict = None, cuda_version: str = None, cc: str = None) -> str:
@@ -119,11 +127,13 @@ class CompilationCache:
         :type compile_params: dict
 
         :param cuda_version: CUDA driver version
-        :type cuda_version: str
+        :type cuda_version: str|None
 
         :param cc: Compute Capabilities
-        :type cc: str
+        :type cc: str|None
 
+        :returns h: Hexadecimal string of the hashed parameters
+        :rtype h: str
         """
         
         # Deterministic hashing to uniquely identify kernels
@@ -152,6 +162,10 @@ class CompilationCache:
     
     def log_stats(self) -> dict:
         """Return number of hits and misses for the cache
+
+        :returns: dictionary of cache stats (hits, misses, total configs)
+        :rtype: dict
+        
         """
         total = self._hits + self._misses
         return {
@@ -161,7 +175,7 @@ class CompilationCache:
         }
     
     def _load_index(self) -> dict:
-        """Load index.json file into dictionary
+        """Load index.json file into dictionary to get up-to-date cache structure.
         """
         if (os.path.exists(self._index_path)):
             with open(self._index_path) as f:
@@ -169,7 +183,7 @@ class CompilationCache:
         return {}
     
     def _write_index(self) -> None:
-        """Write dictionary to index.json file
+        """Write dictionary to index.json file to update cache.
         """
         with open(self._index_path, "w") as f:
             json.dump(self._index, f, indent=2)

@@ -84,6 +84,11 @@ class GPUBackend(Backend):
     def copy_texture_memory_args(self, texmem_args):
         """This method must implement the allocation and copy of texture memory to the GPU."""
         pass
+    
+    @abstractmethod
+    def load_binary_to_kernel(self, binary, kernel_instance):
+        """Load the kernel from the cache binary, return the function"""
+        pass
 
     def refresh_memory(self, gpu_memory, host_arguments, should_sync):
         """Refresh the GPU memory with the untouched host arguments."""
@@ -102,4 +107,9 @@ class CompilerBackend(Backend):
     @abstractmethod
     def cleanup_lib(self):
         """Unload the previously loaded shared library"""
+        pass
+
+    @abstractmethod
+    def load_binary_to_kernel(self, binary, kernel_instance):
+        """Load the kernel from the cache binary, return the function"""
         pass

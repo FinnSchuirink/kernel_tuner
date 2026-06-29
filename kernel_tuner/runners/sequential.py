@@ -11,7 +11,7 @@ from kernel_tuner.util import ErrorConfig, print_config_output, process_metrics,
 class SequentialRunner(Runner):
     """SequentialRunner is used for tuning with a single process/thread."""
 
-    def __init__(self, kernel_source, kernel_options, device_options, iterations, observers, compilation_cache_enabled, num_threads=None):
+    def __init__(self, kernel_source, kernel_options, device_options, iterations, observers, compilation_cache_enabled=False, num_threads=None):
         """Instantiate the SequentialRunner.
 
         :param kernel_source: The kernel source
@@ -27,6 +27,12 @@ class SequentialRunner(Runner):
         :param iterations: The number of iterations used for benchmarking
             each kernel instance.
         :type iterations: int
+
+        :param num_threads: The number of worker threads to use to compile.
+        :type num_threads: int
+
+        :param compilation_cache_enabled: Flag to signal whether to use the compilation cache or skip it
+        :type compilation_cache_enabled: boolean
         """
         #detect language and create high-level device interface
         self.dev = DeviceInterface(kernel_source, compilation_cache_enabled=compilation_cache_enabled, iterations=iterations, observers=observers, **device_options)
@@ -73,7 +79,7 @@ class SequentialRunner(Runner):
             result = None
             warmup_time = 0
 
-            # check if configuration is in the cache
+            # Check if result is already in the benchmarking cache
             x_int = ",".join([str(i) for i in element])
             if tuning_options.cache and x_int in tuning_options.cache:
                 params.update(tuning_options.cache[x_int])

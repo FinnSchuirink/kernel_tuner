@@ -26,6 +26,12 @@ class ParallelRunner(Runner):
             :param iterations: The number of iterations used for benchmarking
                 each kernel instance.
             :type iterations: int
+
+            :param num_threads: The number of worker threads to use to compile.
+            :type num_threads: int
+
+            :param compilation_cache_enabled: Flag to signal whether to use the compilation cache or skip it
+            :type compilation_cache_enabled: boolean
         """
         #detect language and create high-level device interface
         self.dev = DeviceInterface(kernel_source, compilation_cache_enabled=compilation_cache_enabled, iterations=iterations, observers=observers, **device_options)
@@ -35,7 +41,8 @@ class ParallelRunner(Runner):
         try:
             import pycuda.driver as drv
             self.cuda_context = drv.Context.get_current()
-        except:
+        except Exception:
+            #PyCUDA not available, no cuda context.
             pass
 
         self.units = self.dev.units
@@ -59,7 +66,7 @@ class ParallelRunner(Runner):
         return env
 
     def single_compilation(self, element, tuning_options):
-        """
+        """ Single task for a worker thread to compile a single configuration.
 
             :param element: The current configuration inside the parameter space currently being observed
             :type element: tuple
@@ -67,7 +74,8 @@ class ParallelRunner(Runner):
             :param tuning_options: A dictionary with all options regarding the tuning process.
             :type tuning_options: kernel_tuner.interface.Options
 
-            :returns tuple of necessary information for benchmarking:
+            :returns tuple of necessary information for benchmarking (result, func, to, instance)
+            :rtype: tuple
         """
         ## Copy cuda_context onto the thread
         if (self.cuda_context is not None):
@@ -85,7 +93,7 @@ class ParallelRunner(Runner):
         return result, func, to, instance
 
     def run(self, parameter_space, tuning_options):
-        """
+        """Compile all configurations concurrently and benchmark configurations when compilation has finished.
 
         :param parameter_space: The parameter space as an iterable.
         :type parameter_space: iterable
@@ -128,7 +136,7 @@ class ParallelRunner(Runner):
             for element in parameter_space:
                 x_int = ",".join([str(i) for i in element])
 
-                # Check if result is already in the cache
+                # Check if result is already in the benchmarking cache
                 if tuning_options.cache and x_int in tuning_options.cache:
                     params = dict(zip(tuning_options.tune_params.keys(), element))
                     params.update(tuning_options.cache[x_int])

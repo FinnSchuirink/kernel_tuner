@@ -715,7 +715,21 @@ class DeviceInterface(object):
         return result, func, to, instance
 
     def compile_kernel(self, instance, verbose):
-        """Compile the kernel for this specific instance."""
+        """ Compile the kernel for this specific instance. Checks if the kernel is already pre-compiled in the cache, if so it retrieves it.
+            Else the kernel is recompiled and saved to the cache (if the cache is enabled)
+
+            :returns instance: The kernel instance created for this configuration
+            :rtype instance: kernel_tuner.core.KernelInstance
+
+            :param verbose: Extended information printed
+            :type verbose: boolean
+
+            :param func: The compiled kernel
+            :type func: device function or None
+
+            :returns module: The module loaded in the binary
+            :rtype module: typeof[backend] module 
+        """
         func = None
         module = None
 
@@ -727,9 +741,8 @@ class DeviceInterface(object):
             
             raw_kernel_string = instance.kernel_source.get_kernel_string(0)
 
-            # Exclude parameters that don't influence the compiled binary.
+            # Hardcoded list of tunable parameter list that don't influence the corresponding binary, to be edited by the user based on the current kernel.
             runtime_params = ["block_size_x", "block_size_y", "block_size_z", "grid_size_x", "grid_size_y", "grid_size_z"]
-            #runtime_params = []
 
             compile_time_params = {k: v for k, v in instance.params.items() if k not in runtime_params}
 
